@@ -54,7 +54,7 @@ namespace Supa
         {
             if (string.IsNullOrEmpty(folderName))
             {
-                throw new ArgumentNullException(nameof(folderName));
+                throw new ArgumentNullException("folderName");
             }
 
             this.folderName = folderName;
