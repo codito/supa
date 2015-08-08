@@ -27,7 +27,7 @@ namespace Supa.Platform
         {
             if (serviceUri == null)
             {
-                throw new ArgumentNullException(nameof(serviceUri));
+                throw new ArgumentNullException("serviceUri");
             }
 
             throw new System.NotImplementedException();
