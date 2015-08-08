@@ -8,7 +8,8 @@
           <CodeCoverage>
             <ModulePaths>
               <Include>
-                <ModulePath>.*supa.*</ModulePath>
+                <ModulePath>.*bin.*supa.*\.dll$</ModulePath>
+                <ModulePath>.*bin.*supa.*\.exe$</ModulePath>
               </Include>
             </ModulePaths>
           </CodeCoverage>
