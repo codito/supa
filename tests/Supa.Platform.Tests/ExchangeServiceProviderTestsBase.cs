@@ -21,10 +21,10 @@ namespace Supa.Platform.Tests
             "Sample content for second email in first conversation";
 
         public static readonly string TestUser =
-            Environment.GetEnvironmentVariable("SupaExchangeServiceProviderTestUser", EnvironmentVariableTarget.User);
+            Environment.GetEnvironmentVariable("SupaExchangeServiceProviderTestUser");
 
         public static readonly string TestUserPassword =
-            Environment.GetEnvironmentVariable("SupaExchangeServiceProviderTestPassword", EnvironmentVariableTarget.User);
+            Environment.GetEnvironmentVariable("SupaExchangeServiceProviderTestPassword");
 
         private const string SecondConversationSubject = "Second conversation";
 

@@ -27,7 +27,7 @@ namespace Supa.Platform.Tests
         [ClassInitialize]
         public static void InitializeProvider(TestContext testContext)
         {
-            var serviceEndpoint = Environment.GetEnvironmentVariable("SupaExchangeServiceProviderServiceUrl", EnvironmentVariableTarget.User);
+            var serviceEndpoint = Environment.GetEnvironmentVariable("SupaExchangeServiceProviderServiceUrl");
             if (string.IsNullOrEmpty(serviceEndpoint))
             {
                 Assert.Inconclusive("SupaExchangeServiceProviderServiceUrl is not set. Please set it to an exchange endpoint. E.g. https://outlook.office365.com/EWS/Exchange.asmx");
