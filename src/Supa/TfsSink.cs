@@ -1,49 +1,53 @@
 // --------------------------------------------------------------------------------------------------------------------
-// <copyright file="TfsSink.cs">
+// <copyright file="TfsSink.cs" company="">
 //   Copyright (c) Supa Contributors. All rights reserved.
 //   See license.md for license details.
 // </copyright>
 // --------------------------------------------------------------------------------------------------------------------
+
 namespace Supa
 {
     using System;
     using System.Globalization;
     using System.IO;
 
-    using Microsoft.TeamFoundation.Client;
-    using Microsoft.TeamFoundation.WorkItemTracking.Client;
-
     using Serilog;
+
+    using Supa.Platform;
 
     /// <summary>
     /// The <c>tfs</c> sink.
     /// </summary>
     public class TfsSink
     {
-        private readonly WorkItemStore workItemStore;
-
-        private readonly WorkItem parentWorkItem;
-
         private readonly ILogger logger;
 
         private readonly string workItemTemplatePath;
 
+        private readonly ITfsServiceProvider tfsServiceProvider;
+
+        private readonly TfsServiceProviderConfiguration tfsServiceProviderConfiguration;
+
         /// <summary>
         /// Initializes a new instance of the <see cref="TfsSink"/> class.
         /// </summary>
-        /// <param name="serviceUri">Service end point.</param>
-        /// <param name="parentWorkItem">Parent work item id for all tasks.</param>
-        /// <param name="issueTemplatePath">Path to a work item template.</param>
+        /// <param name="serviceUri">
+        /// Service end point.
+        /// </param>
+        /// <param name="parentWorkItem">
+        /// Parent work item id for all tasks.
+        /// </param>
+        /// <param name="issueTemplatePath">
+        /// Path to a work item template.
+        /// </param>
         public TfsSink(Uri serviceUri, int parentWorkItem, string issueTemplatePath)
         {
-            var tfsUrl = serviceUri;
-
             this.logger = Log.Logger.ForContext<TfsSink>();
 
-            var tfsProjectCollection = new TfsTeamProjectCollection(tfsUrl);
-            this.workItemStore = new WorkItemStore(tfsProjectCollection);
-            this.parentWorkItem = this.workItemStore.GetWorkItem(parentWorkItem);
+            this.tfsServiceProvider = new TfsSoapServiceProvider(serviceUri);
             this.workItemTemplatePath = issueTemplatePath;
+            this.tfsServiceProviderConfiguration = new TfsServiceProviderConfiguration(null, null);
+            this.tfsServiceProviderConfiguration.ParentWorkItemId = parentWorkItem;
         }
 
         /// <summary>
@@ -54,34 +58,11 @@ namespace Supa
         /// </param>
         public void Serialize(Issue issue)
         {
-            WorkItem item = null;
-            var shouldSave = false;
-            foreach (var link in this.parentWorkItem.Links)
-            {
-                var itemLink = link as RelatedLink;
-                if (itemLink != null && itemLink.Comment.StartsWith(issue.Id))
-                {
-                    item = this.workItemStore.GetWorkItem(itemLink.RelatedWorkItemId);
-                    var activityCount = item["Custom 05"].ToString();
-                    if (!activityCount.Equals(issue.Activity.ToString(CultureInfo.InvariantCulture), StringComparison.OrdinalIgnoreCase))
-                    {
-                        shouldSave = true;
-                    }
-
-                    this.logger.Debug("Found existing workitem: {Id}, {activityCount}", item.Id, activityCount);
-                    this.logger.Debug("Activity count for issue: {Activity}", issue.Activity);
-                    break;
-                }
-            }
-
-            if (item == null)
-            {
-                item = this.parentWorkItem.Project.WorkItemTypes["Task"].NewWorkItem();
-                shouldSave = true;
-            }
+            this.tfsServiceProvider.Configure(this.tfsServiceProviderConfiguration);
+            var tfsWorkItem = this.tfsServiceProvider.GetWorkItemForIssue(issue.Id, issue.Activity);
 
             // Don't process if the issue is same as existing item
-            if (shouldSave == false)
+            if (tfsWorkItem.HasChange == false)
             {
                 this.logger.Information("Skip creating tfs workitem.");
                 return;
@@ -117,18 +98,10 @@ namespace Supa
                         break;
                 }
 
-                item[keyval[0].Trim()] = value;
+                tfsWorkItem.UpdateField(keyval[0].Trim(), value);
             }
 
-            if (item.IsNew)
-            {
-                var linkType = this.workItemStore.WorkItemLinkTypes["System.LinkTypes.Hierarchy"];
-                var link = new WorkItemLink(linkType.ReverseEnd, this.parentWorkItem.Id) { Comment = issue.Id };
-                item.Links.Add(link);
-            }
-
-            item.Validate();
-            item.Save();
+            this.tfsServiceProvider.SaveWorkItem(tfsWorkItem);
         }
     }
 }
