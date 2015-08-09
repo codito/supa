@@ -41,13 +41,20 @@ namespace Supa
         /// Path to a work item template.
         /// </param>
         public TfsSink(Uri serviceUri, int parentWorkItem, string issueTemplatePath)
+            : this(new TfsSoapServiceProvider(serviceUri), parentWorkItem, issueTemplatePath)
+        {
+        }
+
+        protected TfsSink(ITfsServiceProvider tfsServiceProvider, int parentWorkItem, string issueTemplatePath)
         {
             this.logger = Log.Logger.ForContext<TfsSink>();
 
-            this.tfsServiceProvider = new TfsSoapServiceProvider(serviceUri);
+            this.tfsServiceProvider = tfsServiceProvider;
             this.workItemTemplatePath = issueTemplatePath;
-            this.tfsServiceProviderConfiguration = new TfsServiceProviderConfiguration(null, null);
-            this.tfsServiceProviderConfiguration.ParentWorkItemId = parentWorkItem;
+            this.tfsServiceProviderConfiguration = new TfsServiceProviderConfiguration(null, null)
+            {
+                ParentWorkItemId = parentWorkItem
+            };
         }
 
         /// <summary>

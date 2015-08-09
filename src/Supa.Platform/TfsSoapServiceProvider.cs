@@ -12,6 +12,7 @@ namespace Supa.Platform
 {
     using System;
     using System.Globalization;
+    using System.Net;
 
     using Microsoft.TeamFoundation.Client;
     using Microsoft.TeamFoundation.WorkItemTracking.Client;
@@ -34,9 +35,7 @@ namespace Supa.Platform
         /// <summary>
         /// Initializes a new instance of the <see cref="TfsSoapServiceProvider"/> class.
         /// </summary>
-        /// <param name="serviceUri">
-        ///     Endpoint for team foundation server.
-        /// </param>
+        /// <param name="serviceUri">Endpoint for team foundation server.</param>
         public TfsSoapServiceProvider(Uri serviceUri)
         {
             if (serviceUri == null)
@@ -56,7 +55,10 @@ namespace Supa.Platform
                 throw new ArgumentNullException(nameof(configuration));
             }
 
-            var tfsProjectCollection = new TfsTeamProjectCollection(this.serviceUri);
+            var networkCredential = new NetworkCredential(configuration.Username, configuration.Password);
+            var tfsProjectCollection = new TfsTeamProjectCollection(this.serviceUri, networkCredential);
+            tfsProjectCollection.Authenticate();
+
             this.workItemStore = new WorkItemStore(tfsProjectCollection);
             this.parentWorkItem = this.workItemStore.GetWorkItem(configuration.ParentWorkItemId);
         }

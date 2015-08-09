@@ -6,6 +6,8 @@ namespace Supa.Tests
 
     using Microsoft.VisualStudio.TestTools.UnitTesting;
 
+    using Supa.Platform.TestDoubles;
+
     [TestClass]
     public class TfsSinkTests
     {
@@ -24,5 +26,13 @@ namespace Supa.Tests
         // TfsSinkValidateShouldThrowIfWorkItemIsCompatible
         // TfsSinkValidateShouldReturnTrueIfWorkItemIsValid
         // TfsSinkCommitShouldSaveWorkItem
+    }
+
+    public class TestableTfsSink : TfsSink
+    {
+        public TestableTfsSink(Uri serviceUri, int parentWorkItem, string issueTemplatePath)
+            : base(new TfsServiceProviderSimulator(serviceUri), parentWorkItem, issueTemplatePath)
+        {
+        }
     }
 }

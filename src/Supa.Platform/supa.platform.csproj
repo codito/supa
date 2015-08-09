@@ -249,6 +249,8 @@
     <Compile Include="IExchangeServiceProvider.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="TestDoubles\ExchangeServiceProviderSimulator.cs" />
+    <Compile Include="TestDoubles\TfsServiceProviderSimulator.cs" />
+    <Compile Include="TfsRestServiceProvider.cs" />
     <Compile Include="TfsSoapServiceProvider.cs" />
     <Compile Include="TfsServiceProviderConfiguration.cs" />
     <Compile Include="TfsWorkItem.cs" />
