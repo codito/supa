@@ -72,9 +72,10 @@ namespace Supa.Platform.Tests
         private static int CreateWorkItemInternal(string title)
         {
             var networkCredential = new NetworkCredential(tfsServiceProviderTestUser, tfsServiceProviderTestPassword);
+            var tfsClientCredentials = new TfsClientCredentials(new BasicAuthCredential(networkCredential)) { AllowInteractive = false };
             using (var tfsProjectCollection = new TfsTeamProjectCollection(
                     new Uri(tfsServiceProviderUri),
-                    networkCredential))
+                    tfsClientCredentials))
             {
                 tfsProjectCollection.Authenticate();
 
