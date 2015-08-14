@@ -9,8 +9,12 @@ namespace Supa.Platform
 {
     using System;
     using System.Net;
+    using System.Threading.Tasks;
 
     using Microsoft.TeamFoundation.Client;
+    using Microsoft.TeamFoundation.WorkItemTracking.WebApi;
+    using Microsoft.TeamFoundation.WorkItemTracking.WebApi.Models;
+    using Microsoft.VisualStudio.Services.Common;
 
     /// <summary>
     /// Service provider for TeamFoundationServer on-premise (REST based).
@@ -18,6 +22,8 @@ namespace Supa.Platform
     public class TfsRestServiceProvider : ITfsServiceProvider
     {
         private readonly Uri serviceUri;
+
+        private WorkItem parentWorkItem;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="TfsRestServiceProvider"/> class.
@@ -34,20 +40,17 @@ namespace Supa.Platform
         }
 
         /// <inheritdoc/>
-        public void Configure(TfsServiceProviderConfiguration configuration)
+        public async Task ConfigureAsync(TfsServiceProviderConfiguration configuration)
         {
             if (configuration == null)
             {
                 throw new ArgumentNullException(nameof(configuration));
             }
 
-            var networkCredential = new NetworkCredential(configuration.Username, configuration.Password);
-            var tfsClientCredentials = new TfsClientCredentials(new BasicAuthCredential(networkCredential)) { AllowInteractive = false };
-            using (var tpc = new TfsTeamProjectCollection(this.serviceUri, tfsClientCredentials))
-            {
-                tpc.Authenticate();
-                Console.WriteLine(tpc.InstanceId);
-            }
+            var vssCredentials = new VssBasicCredential(configuration.Username, configuration.Password);
+            var witClient = new WorkItemTrackingHttpClient(this.serviceUri, vssCredentials);
+
+            this.parentWorkItem = await witClient.GetWorkItemAsync(configuration.ParentWorkItemId);
         }
 
         /// <inheritdoc/>

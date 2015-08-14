@@ -8,15 +8,22 @@
 namespace Supa.Platform.TestDoubles
 {
     using System;
+    using System.Collections.Generic;
+    using System.Threading.Tasks;
 
     using Microsoft.TeamFoundation;
+    using Microsoft.VisualStudio.Services.Common;
 
     /// <summary>
     /// The <c>tfs</c> service provider simulator.
     /// </summary>
     public class TfsServiceProviderSimulator : ITfsServiceProvider
     {
+
+        private readonly Dictionary<int, string> workItems;
+        private readonly Dictionary<int, List<int>> workItemLinks;
         private Uri serviceUri;
+        private int parentWorkItemId;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="TfsServiceProviderSimulator"/> class.
@@ -27,10 +34,12 @@ namespace Supa.Platform.TestDoubles
         public TfsServiceProviderSimulator(Uri serviceUri)
         {
             this.serviceUri = serviceUri;
+            this.workItems = new Dictionary<int, string>();
+            this.workItemLinks = new Dictionary<int, List<int>>();
         }
 
         /// <inheritdoc/>
-        public void Configure(TfsServiceProviderConfiguration configuration)
+        public async Task ConfigureAsync(TfsServiceProviderConfiguration configuration)
         {
             if (configuration == null)
             {
@@ -39,8 +48,17 @@ namespace Supa.Platform.TestDoubles
 
             if (configuration.Username.Equals("invalidUsername") || configuration.Password.Equals("invalidPassword"))
             {
-                throw new TeamFoundationServerUnauthorizedException();
+                throw new VssUnauthorizedException();
             }
+
+            await Task.Run(
+                () =>
+                    {
+                        if (this.workItems[configuration.ParentWorkItemId] != null)
+                        {
+                            this.parentWorkItemId = configuration.ParentWorkItemId;
+                        }
+                    });
         }
 
         /// <inheritdoc/>
@@ -54,5 +72,19 @@ namespace Supa.Platform.TestDoubles
         {
             throw new System.NotImplementedException();
         }
+
+        #region Testability Methods
+
+        public void CreateWorkItem(int id, string title)
+        {
+            this.workItems.Add(id, title);
+            this.workItemLinks.Add(id, new List<int>());
+        }
+
+        public void AddLinkToWorkItem(int parentId, int childId)
+        {
+            this.workItemLinks[parentId].Add(childId);
+        }
+        #endregion
     }
 }

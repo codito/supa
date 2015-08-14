@@ -65,7 +65,7 @@ namespace Supa
         /// </param>
         public void Serialize(Issue issue)
         {
-            this.tfsServiceProvider.Configure(this.tfsServiceProviderConfiguration);
+            this.tfsServiceProvider.ConfigureAsync(this.tfsServiceProviderConfiguration);
             var tfsWorkItem = this.tfsServiceProvider.GetWorkItemForIssue(issue.Id, issue.Activity);
 
             // Don't process if the issue is same as existing item

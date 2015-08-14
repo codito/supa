@@ -11,6 +11,7 @@
 namespace Supa.Platform
 {
     using System;
+    using System.Threading.Tasks;
 
     using Microsoft.TeamFoundation.WorkItemTracking.Client;
 
@@ -23,9 +24,10 @@ namespace Supa.Platform
         /// Configures and authenticates the <c>Tfs</c> connection.
         /// </summary>
         /// <param name="configuration">An instance of configuration</param>
+        /// <returns>A Task</returns>
         /// <exception cref="ArgumentNullException">Thrown if <see cref="configuration"/> is null.</exception>
         /// <exception cref="InvalidOperationException">Thrown if invalid credentials are presented.</exception>
-        void Configure(TfsServiceProviderConfiguration configuration);
+        Task ConfigureAsync(TfsServiceProviderConfiguration configuration);
 
         /// <summary>
         /// Gets a work item for an issue id. Creates a new work item if none matching exists.

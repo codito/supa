@@ -260,7 +260,9 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="TestDoubles\TestableTfsWorkItem.cs" />
     <Compile Include="TfsRestServiceProviderTests.cs" />
+    <Compile Include="TfsServiceProviderSimulatorTests.cs" />
     <Compile Include="TfsServiceProviderTestsBase.cs" />
+    <Compile Include="TfsSoapServiceProviderTests.cs" />
     <Compile Include="TfsWorkItemExtensionsTests.cs" />
     <Compile Include="TfsWorkItemTests.cs" />
   </ItemGroup>

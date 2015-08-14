@@ -13,6 +13,7 @@ namespace Supa.Platform
     using System;
     using System.Globalization;
     using System.Net;
+    using System.Threading.Tasks;
 
     using Microsoft.TeamFoundation.Client;
     using Microsoft.TeamFoundation.WorkItemTracking.Client;
@@ -48,7 +49,7 @@ namespace Supa.Platform
         }
 
         /// <inheritdoc/>
-        public void Configure(TfsServiceProviderConfiguration configuration)
+        public async Task ConfigureAsync(TfsServiceProviderConfiguration configuration)
         {
             if (configuration == null)
             {
@@ -56,11 +57,17 @@ namespace Supa.Platform
             }
 
             var networkCredential = new NetworkCredential(configuration.Username, configuration.Password);
-            var tfsProjectCollection = new TfsTeamProjectCollection(this.serviceUri, networkCredential);
+            var tfsClientCredentials = new TfsClientCredentials(new BasicAuthCredential(networkCredential)) { AllowInteractive = false };
+            var tfsProjectCollection = new TfsTeamProjectCollection(this.serviceUri, tfsClientCredentials);
             tfsProjectCollection.Authenticate();
+            tfsProjectCollection.EnsureAuthenticated();
 
-            this.workItemStore = new WorkItemStore(tfsProjectCollection);
-            this.parentWorkItem = this.workItemStore.GetWorkItem(configuration.ParentWorkItemId);
+            await Task.Run(
+                () =>
+                    {
+                        this.workItemStore = new WorkItemStore(tfsProjectCollection);
+                        this.parentWorkItem = this.workItemStore.GetWorkItem(configuration.ParentWorkItemId);
+                    });
         }
 
         /// <inheritdoc/>

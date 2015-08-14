@@ -4,14 +4,22 @@ namespace Supa.Platform.Tests
 
     using FluentAssertions;
 
+    using Microsoft.VisualStudio.Services.Common;
+    using Microsoft.VisualStudio.Services.WebApi;
     using Microsoft.VisualStudio.TestTools.UnitTesting;
-
-    using Supa.Platform.TestDoubles;
 
     [TestClass]
     public class TfsRestServiceProviderTests : TfsServiceProviderTestsBase
     {
         private static string tfsServiceProviderUri;
+
+        private static string tfsServiceProviderTestUser;
+
+        private static string tfsServiceProviderTestPassword;
+
+        public override Type UnauthorizedExceptionType => typeof(VssUnauthorizedException);
+
+        public override Type WorkItemDoesNotExistExceptionType => typeof(VssServiceResponseException);
 
         [ClassInitialize]
         public static void InitializeTestSuite(TestContext testContext)
@@ -19,8 +27,8 @@ namespace Supa.Platform.Tests
             TfsRestServiceProviderTests.SkipTestsIfEnvironmentIsNotSet();
 
             tfsServiceProviderUri = Environment.GetEnvironmentVariable("SupaTfsServiceProviderServiceUrl");
-            var tfsServiceProviderTestUser = Environment.GetEnvironmentVariable("SupaTfsServiceProviderTestUser");
-            var tfsServiceProviderTestPassword = Environment.GetEnvironmentVariable("SupaTfsServiceProviderTestPassword");
+            tfsServiceProviderTestUser = Environment.GetEnvironmentVariable("SupaTfsServiceProviderTestUser");
+            tfsServiceProviderTestPassword = Environment.GetEnvironmentVariable("SupaTfsServiceProviderTestPassword");
         }
 
         [TestMethod]
@@ -35,43 +43,23 @@ namespace Supa.Platform.Tests
         {
             return new TfsRestServiceProvider(new Uri(tfsServiceProviderUri));
         }
-    }
 
-    [TestClass]
-    public class TfsServiceProviderSimulatorTests : TfsServiceProviderTestsBase
-    {
-        public override ITfsServiceProvider CreateTfsServiceProvider()
+        public override int CreateWorkItem(string title)
         {
-            return new TfsServiceProviderSimulator(new Uri("http://dummyUri"));
-        }
-    }
-
-    [TestClass]
-    public class TfsSoapServiceProviderTests : TfsServiceProviderTestsBase
-    {
-        private static string tfsServiceProviderUri;
-
-        [ClassInitialize]
-        public static void InitializeTestSuite(TestContext testContext)
-        {
-            TfsSoapServiceProviderTests.SkipTestsIfEnvironmentIsNotSet();
-
-            tfsServiceProviderUri = Environment.GetEnvironmentVariable("SupaTfsServiceProviderServiceUrl");
-            var tfsServiceProviderTestUser = Environment.GetEnvironmentVariable("SupaTfsServiceProviderTestUser");
-            var tfsServiceProviderTestPassword = Environment.GetEnvironmentVariable("SupaTfsServiceProviderTestPassword");
+            throw new NotImplementedException();
         }
 
-        [TestMethod]
-        public void TfsServiceProviderThrowsArgumentNullExceptionForNullServiceUri()
+        public override void AddLinkToWorkItem(int parentWorkItemId, int childWorkItemId)
         {
-            Action action = () => { var x = new TfsSoapServiceProvider(null); };
-
-            action.ShouldThrow<ArgumentNullException>().And.ParamName.Should().Be("serviceUri");
+            throw new NotImplementedException();
         }
 
-        public override ITfsServiceProvider CreateTfsServiceProvider()
+        public override TfsServiceProviderConfiguration CreateDefaultConfiguration()
         {
-            return new TfsSoapServiceProvider(new Uri(tfsServiceProviderUri));
+            return new TfsServiceProviderConfiguration(tfsServiceProviderTestUser, tfsServiceProviderTestPassword)
+                       {
+                           ParentWorkItemId = 0
+                       };
         }
     }
 }
