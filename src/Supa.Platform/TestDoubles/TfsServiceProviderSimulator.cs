@@ -12,6 +12,7 @@ namespace Supa.Platform.TestDoubles
     using System.Threading.Tasks;
 
     using Microsoft.TeamFoundation;
+    using Microsoft.TeamFoundation.WorkItemTracking.Client;
     using Microsoft.VisualStudio.Services.Common;
 
     /// <summary>
@@ -48,15 +49,19 @@ namespace Supa.Platform.TestDoubles
 
             if (configuration.Username.Equals("invalidUsername") || configuration.Password.Equals("invalidPassword"))
             {
-                throw new VssUnauthorizedException();
+                throw new TeamFoundationServerUnauthorizedException();
             }
 
             await Task.Run(
                 () =>
                     {
-                        if (this.workItems[configuration.ParentWorkItemId] != null)
+                        if (this.workItems.ContainsKey(configuration.ParentWorkItemId))
                         {
                             this.parentWorkItemId = configuration.ParentWorkItemId;
+                        }
+                        else
+                        {
+                            throw new DeniedOrNotExistException();
                         }
                     });
         }

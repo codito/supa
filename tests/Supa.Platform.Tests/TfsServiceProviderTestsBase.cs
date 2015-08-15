@@ -5,6 +5,8 @@ namespace Supa.Platform.Tests
 
     using FluentAssertions;
 
+    using Microsoft.TeamFoundation;
+    using Microsoft.TeamFoundation.WorkItemTracking.Client;
     using Microsoft.VisualStudio.TestTools.UnitTesting;
 
     using Supa.Platform;
@@ -15,10 +17,6 @@ namespace Supa.Platform.Tests
         private ITfsServiceProvider tfsServiceProvider;
 
         private TfsServiceProviderConfiguration tfsServiceProviderDefaultConfig;
-
-        public abstract Type UnauthorizedExceptionType { get; }
-
-        public abstract Type WorkItemDoesNotExistExceptionType { get; }
 
         [TestInitialize]
         public void InitializeTest()
@@ -43,7 +41,7 @@ namespace Supa.Platform.Tests
 
             Func<Task> action = async () => await this.tfsServiceProvider.ConfigureAsync(invalidCredentialConfig);
 
-            action.ShouldThrow<Exception>().And.Should().BeOfType(this.UnauthorizedExceptionType);
+            action.ShouldThrow<TeamFoundationServerUnauthorizedException>();
         }
 
         [TestMethod]
@@ -54,7 +52,16 @@ namespace Supa.Platform.Tests
 
             Func<Task> action = async () => await this.tfsServiceProvider.ConfigureAsync(defaultConfig);
 
-            action.ShouldThrow<Exception>().And.Should().BeOfType(this.WorkItemDoesNotExistExceptionType);
+            action.ShouldThrow<DeniedOrNotExistException>();
+        }
+
+        [TestMethod]
+        public void TfsServiceProviderConfigureSetsupParentWorkItemFromTfsServer()
+        {
+            Func<Task> action =
+                async () => await this.tfsServiceProvider.ConfigureAsync(this.CreateDefaultConfiguration());
+
+            action.ShouldNotThrow();
         }
 
         public abstract ITfsServiceProvider CreateTfsServiceProvider();

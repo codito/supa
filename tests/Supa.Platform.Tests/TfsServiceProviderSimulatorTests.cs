@@ -4,7 +4,6 @@ namespace Supa.Platform.Tests
     using System.Collections.Generic;
 
     using Microsoft.VisualStudio.Services.Common;
-    using Microsoft.VisualStudio.Services.WebApi;
     using Microsoft.VisualStudio.TestTools.UnitTesting;
 
     using Supa.Platform.TestDoubles;
@@ -12,28 +11,48 @@ namespace Supa.Platform.Tests
     [TestClass]
     public class TfsServiceProviderSimulatorTests : TfsServiceProviderTestsBase
     {
-        public override Type UnauthorizedExceptionType => typeof(VssUnauthorizedException);
+        private static TfsServiceProviderSimulator tfsServiceProviderSimulator;
 
-        public override Type WorkItemDoesNotExistExceptionType => typeof(KeyNotFoundException);
+        private static int parentWorkItemId;
+
+        private static int workItemSeed;
+
+        [ClassInitialize]
+        public static void InitializeTestSuite(TestContext testContext)
+        {
+            workItemSeed = 1020;
+            tfsServiceProviderSimulator = new TfsServiceProviderSimulator(new Uri("http://dummyUri"));
+            parentWorkItemId = CreateWorkItemInternal("TfsServiceProviderSimulator: Parent work item");
+        }
 
         public override ITfsServiceProvider CreateTfsServiceProvider()
         {
-            return new TfsServiceProviderSimulator(new Uri("http://dummyUri"));
+            return tfsServiceProviderSimulator;
         }
 
         public override int CreateWorkItem(string title)
         {
-            throw new NotImplementedException();
+            return CreateWorkItemInternal(title);
         }
 
-        public override void AddLinkToWorkItem(int parentWorkItemId, int childWorkItemId)
+        public override void AddLinkToWorkItem(int parentId, int childId)
         {
             throw new NotImplementedException();
         }
 
         public override TfsServiceProviderConfiguration CreateDefaultConfiguration()
         {
-            return new TfsServiceProviderConfiguration("testUser", "testPassword");
+            return new TfsServiceProviderConfiguration("testUser", "testPassword")
+                       {
+                           ParentWorkItemId = parentWorkItemId
+                       };
+        }
+
+        private static int CreateWorkItemInternal(string title)
+        {
+            var workItemId = workItemSeed++;
+            tfsServiceProviderSimulator.CreateWorkItem(workItemId, title);
+            return workItemId;
         }
     }
 }

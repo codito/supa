@@ -42,10 +42,6 @@ namespace Supa.Platform.Tests
             action.ShouldThrow<ArgumentNullException>().And.ParamName.Should().Be("serviceUri");
         }
 
-        public override Type UnauthorizedExceptionType => typeof(TeamFoundationServerUnauthorizedException);
-
-        public override Type WorkItemDoesNotExistExceptionType => typeof(DeniedOrNotExistException);
-
         public override ITfsServiceProvider CreateTfsServiceProvider()
         {
             return new TfsSoapServiceProvider(new Uri(tfsServiceProviderUri));
