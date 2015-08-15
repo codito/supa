@@ -28,6 +28,7 @@ namespace Supa.Platform.Tests
         [TestInitialize]
         public void InitializeTest()
         {
+            // Reset the connection state at start of test
             this.tfsServiceProvider = this.CreateTfsServiceProvider();
             this.tfsServiceProviderDefaultConfig = this.CreateDefaultConfiguration();
         }
@@ -90,16 +91,17 @@ namespace Supa.Platform.Tests
         [TestMethod]
         public void TfsServiceProviderGetWorkItemShouldReturnExistingWorkItemForIssueId()
         {
-            var parentItemId = this.CreateDefaultConfiguration().ParentWorkItemId;
+            var parentItemId = this.tfsServiceProviderDefaultConfig.ParentWorkItemId;
             var childItemForIssue1 = this.CreateWorkItem(IssueTitle1);
             var childItemForIssue2 = this.CreateWorkItem(IssueTitle2);
             this.AddLinkToWorkItem(parentItemId, childItemForIssue1, IssueId1);
 
-            this.tfsServiceProvider.ConfigureAsync(this.CreateDefaultConfiguration()).Wait();
+            this.tfsServiceProvider.ConfigureAsync(this.tfsServiceProviderDefaultConfig).Wait();
             var tfsWorkItem = this.tfsServiceProvider.GetWorkItemForIssue(IssueId1, this.issueActivityCount1);
 
             tfsWorkItem.HasChange.Should().BeFalse();
         }
+
         public abstract ITfsServiceProvider CreateTfsServiceProvider();
 
         public abstract int CreateWorkItem(string title);

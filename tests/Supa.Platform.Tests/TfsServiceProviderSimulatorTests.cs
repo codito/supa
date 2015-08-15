@@ -1,9 +1,7 @@
 namespace Supa.Platform.Tests
 {
     using System;
-    using System.Collections.Generic;
 
-    using Microsoft.VisualStudio.Services.Common;
     using Microsoft.VisualStudio.TestTools.UnitTesting;
 
     using Supa.Platform.TestDoubles;
@@ -11,48 +9,44 @@ namespace Supa.Platform.Tests
     [TestClass]
     public class TfsServiceProviderSimulatorTests : TfsServiceProviderTestsBase
     {
-        private static TfsServiceProviderSimulator tfsServiceProviderSimulator;
-
         private static int parentWorkItemId;
 
         private static int workItemSeed;
+
+        private TfsServiceProviderSimulator tfsServiceProviderSimulator;
+
 
         [ClassInitialize]
         public static void InitializeTestSuite(TestContext testContext)
         {
             workItemSeed = 1020;
-            tfsServiceProviderSimulator = new TfsServiceProviderSimulator(new Uri("http://dummyUri"));
-            parentWorkItemId = CreateWorkItemInternal("TfsServiceProviderSimulator: Parent work item");
         }
 
         public override ITfsServiceProvider CreateTfsServiceProvider()
         {
-            return tfsServiceProviderSimulator;
+            this.tfsServiceProviderSimulator = new TfsServiceProviderSimulator(new Uri("http://dummyUri"));
+            return this.tfsServiceProviderSimulator;
         }
 
         public override int CreateWorkItem(string title)
         {
-            return CreateWorkItemInternal(title);
+            var workItemId = workItemSeed++;
+            this.tfsServiceProviderSimulator.CreateWorkItem(workItemId, title);
+            return workItemId;
         }
 
         public override void AddLinkToWorkItem(int parentId, int childId, string comment)
         {
-            tfsServiceProviderSimulator.AddLinkToWorkItem(parentId, childId, comment);
+            this.tfsServiceProviderSimulator.AddLinkToWorkItem(parentId, childId, comment);
         }
 
         public override TfsServiceProviderConfiguration CreateDefaultConfiguration()
         {
+            parentWorkItemId = this.CreateWorkItem("TfsServiceProviderSimulator: Parent work item");
             return new TfsServiceProviderConfiguration("testUser", "testPassword")
                        {
                            ParentWorkItemId = parentWorkItemId
                        };
-        }
-
-        private static int CreateWorkItemInternal(string title)
-        {
-            var workItemId = workItemSeed++;
-            tfsServiceProviderSimulator.CreateWorkItem(workItemId, title);
-            return workItemId;
         }
     }
 }

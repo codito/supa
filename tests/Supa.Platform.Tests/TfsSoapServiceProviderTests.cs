@@ -2,6 +2,7 @@ namespace Supa.Platform.Tests
 {
     using System;
     using System.Collections.Generic;
+    using System.Linq;
     using System.Net;
 
     using FluentAssertions;
@@ -85,6 +86,12 @@ namespace Supa.Platform.Tests
 
         private static int CreateWorkItemInternal(string title)
         {
+            // Get work item from cache, saves some time for us!
+            if (WorkItemsDictionary.Any(w => w.Value.Equals(title)))
+            {
+                return WorkItemsDictionary.Single(w => w.Value.Equals(title)).Key;
+            }
+
             using (var tfsProjectCollection = GetProjectCollection())
             {
                 var workItemStore = new WorkItemStore(tfsProjectCollection);
