@@ -35,9 +35,9 @@ namespace Supa.Platform.Tests
             return CreateWorkItemInternal(title);
         }
 
-        public override void AddLinkToWorkItem(int parentId, int childId)
+        public override void AddLinkToWorkItem(int parentId, int childId, string comment)
         {
-            throw new NotImplementedException();
+            tfsServiceProviderSimulator.AddLinkToWorkItem(parentId, childId, comment);
         }
 
         public override TfsServiceProviderConfiguration CreateDefaultConfiguration()

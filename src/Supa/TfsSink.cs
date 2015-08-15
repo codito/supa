@@ -45,6 +45,12 @@ namespace Supa
         {
         }
 
+        /// <summary>
+        /// Initializes a new instance of the <see cref="TfsSink"/> class.
+        /// </summary>
+        /// <param name="tfsServiceProvider">Service endpoint.</param>
+        /// <param name="parentWorkItem">The parent work item.</param>
+        /// <param name="issueTemplatePath">The issue template path.</param>
         protected TfsSink(ITfsServiceProvider tfsServiceProvider, int parentWorkItem, string issueTemplatePath)
         {
             this.logger = Log.Logger.ForContext<TfsSink>();

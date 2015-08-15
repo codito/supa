@@ -73,6 +73,16 @@ namespace Supa.Platform
         /// <inheritdoc/>
         public TfsWorkItem GetWorkItemForIssue(string issueId, int issueActivityCount)
         {
+            if (string.IsNullOrEmpty(issueId))
+            {
+                throw new ArgumentNullException(nameof(issueId));
+            }
+
+            if (this.parentWorkItem == null)
+            {
+                throw new Exception("Provider is not initialized. Have you called ConfigureAsync?");
+            }
+
             WorkItem item = null;
             var hasChange = false;
             foreach (var link in this.parentWorkItem.Links)
@@ -81,14 +91,14 @@ namespace Supa.Platform
                 if (itemLink != null && itemLink.Comment.StartsWith(issueId))
                 {
                     item = this.workItemStore.GetWorkItem(itemLink.RelatedWorkItemId);
-                    var activityCount = item["Custom 05"].ToString();
-                    if (!activityCount.Equals(issueActivityCount.ToString(CultureInfo.InvariantCulture), StringComparison.OrdinalIgnoreCase))
-                    {
-                        hasChange = true;
-                    }
+                    //var activityCount = item["Custom 05"].ToString();
+                    //if (!activityCount.Equals(issueActivityCount.ToString(CultureInfo.InvariantCulture), StringComparison.OrdinalIgnoreCase))
+                    //{
+                    //    hasChange = true;
+                    //}
 
-                    this.logger.Debug("Found existing workitem: {Id}, {activityCount}", item.Id, activityCount);
-                    this.logger.Debug("Activity count for issue: {Activity}", issueActivityCount);
+                    //this.logger.Debug("Found existing workitem: {Id}, {activityCount}", item.Id, activityCount);
+                    //this.logger.Debug("Activity count for issue: {Activity}", issueActivityCount);
                     break;
                 }
             }

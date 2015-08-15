@@ -18,6 +18,13 @@ namespace Supa.Platform.Tests
 
         private TfsServiceProviderConfiguration tfsServiceProviderDefaultConfig;
 
+        private const string IssueId1 = "issueId1";
+        private const string IssueId2 = "issueId2";
+        private const string IssueTitle1 = "Workitem for Issue 1";
+        private const string IssueTitle2 = "Workitem for Issue 2";
+        private int issueActivityCount1 = 5;
+        private int issueActivityCount2 = 10;
+
         [TestInitialize]
         public void InitializeTest()
         {
@@ -64,11 +71,40 @@ namespace Supa.Platform.Tests
             action.ShouldNotThrow();
         }
 
+        [TestMethod]
+        public void TfsServiceProviderGetWorkItemForIssueThrowsIfIssueIdIsNullOrEmpty()
+        {
+            Action action = () => this.tfsServiceProvider.GetWorkItemForIssue(null, 0);
+
+            action.ShouldThrow<ArgumentNullException>();
+        }
+
+        [TestMethod]
+        public void TfsServiceProviderGetWorkItemForIssueThrowsIfParentWorkItemIsNotAvailable()
+        {
+            Action action = () => this.tfsServiceProvider.GetWorkItemForIssue("dummyIssueId", 0);
+
+            action.ShouldThrow<Exception>().And.Message.Should().Contain("ConfigureAsync");
+        }
+
+        [TestMethod]
+        public void TfsServiceProviderGetWorkItemShouldReturnExistingWorkItemForIssueId()
+        {
+            var parentItemId = this.CreateDefaultConfiguration().ParentWorkItemId;
+            var childItemForIssue1 = this.CreateWorkItem(IssueTitle1);
+            var childItemForIssue2 = this.CreateWorkItem(IssueTitle2);
+            this.AddLinkToWorkItem(parentItemId, childItemForIssue1, IssueId1);
+
+            this.tfsServiceProvider.ConfigureAsync(this.CreateDefaultConfiguration()).Wait();
+            var tfsWorkItem = this.tfsServiceProvider.GetWorkItemForIssue(IssueId1, this.issueActivityCount1);
+
+            tfsWorkItem.HasChange.Should().BeFalse();
+        }
         public abstract ITfsServiceProvider CreateTfsServiceProvider();
 
         public abstract int CreateWorkItem(string title);
 
-        public abstract void AddLinkToWorkItem(int parentWorkItemId, int childWorkItemId);
+        public abstract void AddLinkToWorkItem(int parentWorkItemId, int childWorkItemId, string comment);
 
         public abstract TfsServiceProviderConfiguration CreateDefaultConfiguration();
 
