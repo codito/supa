@@ -14,16 +14,19 @@ namespace Supa.Platform.Tests
     [TestClass]
     public abstract class TfsServiceProviderTestsBase
     {
+        private const string IssueId1 = "issueId1:5";
+        private const string IssueId2 = "issueId2:10";
+        private const string IssueTitle1 = "Workitem for Issue 1";
+        private const string IssueTitle2 = "Workitem for Issue 2";
+
         private ITfsServiceProvider tfsServiceProvider;
 
         private TfsServiceProviderConfiguration tfsServiceProviderDefaultConfig;
 
-        private const string IssueId1 = "issueId1";
-        private const string IssueId2 = "issueId2";
-        private const string IssueTitle1 = "Workitem for Issue 1";
-        private const string IssueTitle2 = "Workitem for Issue 2";
         private int issueActivityCount1 = 5;
         private int issueActivityCount2 = 10;
+
+        private int childWorkItem1;
 
         [TestInitialize]
         public void InitializeTest()
@@ -91,15 +94,56 @@ namespace Supa.Platform.Tests
         [TestMethod]
         public void TfsServiceProviderGetWorkItemShouldReturnExistingWorkItemForIssueId()
         {
-            var parentItemId = this.tfsServiceProviderDefaultConfig.ParentWorkItemId;
-            var childItemForIssue1 = this.CreateWorkItem(IssueTitle1);
-            var childItemForIssue2 = this.CreateWorkItem(IssueTitle2);
-            this.AddLinkToWorkItem(parentItemId, childItemForIssue1, IssueId1);
-
+            this.SetupParentWorkItemWithLinks();
             this.tfsServiceProvider.ConfigureAsync(this.tfsServiceProviderDefaultConfig).Wait();
+
             var tfsWorkItem = this.tfsServiceProvider.GetWorkItemForIssue(IssueId1, this.issueActivityCount1);
 
             tfsWorkItem.HasChange.Should().BeFalse();
+            tfsWorkItem.IssueId.Should().Be(IssueId1);
+        }
+
+        [TestMethod]
+        public void TfsServiceProviderGetWorkItemShouldReturnNewWorkItemIfActivityCountDoesNotMatch()
+        {
+            this.SetupParentWorkItemWithLinks();
+            this.tfsServiceProvider.ConfigureAsync(this.tfsServiceProviderDefaultConfig).Wait();
+
+            var tfsWorkItem = this.tfsServiceProvider.GetWorkItemForIssue(IssueId1, this.issueActivityCount1 + 10);
+
+            tfsWorkItem.HasChange.Should().BeTrue();
+            tfsWorkItem.IssueId.Should().Be(IssueId1);
+        }
+
+        [TestMethod]
+        public void TfsServiceProviderGetWorkItemShouldSkipRelatedLinkForInvalidCommentStringInWorkitemLink()
+        {
+            var childWorkItem2 = this.CreateWorkItem(IssueTitle2);
+            this.AddLinkToWorkItem(
+                this.tfsServiceProviderDefaultConfig.ParentWorkItemId,
+                childWorkItem2,
+                "randomStringWithoutColon");
+            this.tfsServiceProvider.ConfigureAsync(this.tfsServiceProviderDefaultConfig).Wait();
+
+            var tfsWorkItem = this.tfsServiceProvider.GetWorkItemForIssue(IssueId2, this.issueActivityCount1 + 10);
+
+            tfsWorkItem.HasChange.Should().BeTrue();
+            tfsWorkItem.IssueId.Should().Be(IssueId2);
+        }
+
+        [TestMethod]
+        public void TfsServiceProviderGetWorkItemShouldThrowRelatedLinkForInvalidCommentStringEndsWithColonInWorkitemLink()
+        {
+            var childWorkItem3 = this.CreateWorkItem("TfsServiceProviderTests: Workitem 3");
+            this.AddLinkToWorkItem(
+                this.tfsServiceProviderDefaultConfig.ParentWorkItemId,
+                childWorkItem3,
+                IssueId2 + ":");
+            this.tfsServiceProvider.ConfigureAsync(this.tfsServiceProviderDefaultConfig).Wait();
+
+            Action action = () => this.tfsServiceProvider.GetWorkItemForIssue(IssueId2, this.issueActivityCount2);
+
+            action.ShouldThrow<ArgumentException>();
         }
 
         public abstract ITfsServiceProvider CreateTfsServiceProvider();
@@ -126,6 +170,14 @@ namespace Supa.Platform.Tests
             {
                 Assert.Inconclusive("TfsServiceProviderTests require SupaTfsServiceProviderTestPassword environment variable.");
             }
+        }
+
+        private void SetupParentWorkItemWithLinks()
+        {
+            var parentItemId = this.tfsServiceProviderDefaultConfig.ParentWorkItemId;
+            this.childWorkItem1 = this.CreateWorkItem(IssueTitle1);
+
+            this.AddLinkToWorkItem(parentItemId, this.childWorkItem1, IssueId1);
         }
     }
 }

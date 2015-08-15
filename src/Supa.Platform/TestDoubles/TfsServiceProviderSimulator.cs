@@ -9,6 +9,7 @@ namespace Supa.Platform.TestDoubles
 {
     using System;
     using System.Collections.Generic;
+    using System.Globalization;
     using System.Linq;
     using System.Threading.Tasks;
 
@@ -80,15 +81,36 @@ namespace Supa.Platform.TestDoubles
                 throw new Exception("Please run ConfigureAsync first.");
             }
 
+            var hasChange = false;
             var parentWorkItem = this.workItems.Single(w => w.Id == this.parentWorkItemId);
-            var workItemLink = parentWorkItem.Links.FirstOrDefault(l => l.Comment.StartsWith(issueId));
+            string[] commentParts = null;
+            var workItemLink = parentWorkItem.Links.FirstOrDefault(l =>
+                {
+                    if (l.Comment.StartsWith(issueId))
+                    {
+                        commentParts = l.Comment.Split(':');
+                        return true;
+                    }
+
+                    return false;
+                });
             InMemoryWorkItem workItem = null;
             if (workItemLink != null)
             {
+                if (!commentParts[1].Equals(issueActivityCount.ToString(CultureInfo.InvariantCulture)))
+                {
+                    hasChange = true;
+                }
+
                 workItem = this.workItems.Single(w => w.Id == workItemLink.RelatedWorkItemId);
             }
+            else
+            {
+                workItem = new InMemoryWorkItem();
+                hasChange = true;
+            }
 
-            return new InMemoryTfsWorkItem(workItem) { HasChange = false, IssueId = issueId };
+            return new InMemoryTfsWorkItem(workItem) { HasChange = hasChange, IssueId = issueId };
         }
 
         /// <inheritdoc/>

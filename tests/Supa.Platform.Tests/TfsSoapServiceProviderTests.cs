@@ -69,7 +69,23 @@ namespace Supa.Platform.Tests
             {
                 var workItemStore = new WorkItemStore(tfsProjectCollection);
                 var parentWorkItem = workItemStore.GetWorkItem(parentId);
-                parentWorkItem.Links.Add(new RelatedLink(childWorkItemId) { Comment = comment });
+                var linked = false;
+
+                // Update if there's an existing link already
+                foreach (var link in parentWorkItem.Links)
+                {
+                    var relatedLink = link as RelatedLink;
+                    if (relatedLink != null && relatedLink.RelatedWorkItemId == childWorkItemId)
+                    {
+                        relatedLink.Comment = comment;
+                        linked = true;
+                    }
+                }
+
+                if (!linked)
+                {
+                    parentWorkItem.Links.Add(new RelatedLink(childWorkItemId) { Comment = comment });
+                }
 
                 parentWorkItem.Validate();
                 parentWorkItem.Save();

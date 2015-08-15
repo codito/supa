@@ -90,15 +90,17 @@ namespace Supa.Platform
                 var itemLink = link as RelatedLink;
                 if (itemLink != null && itemLink.Comment.StartsWith(issueId))
                 {
-                    item = this.workItemStore.GetWorkItem(itemLink.RelatedWorkItemId);
-                    //var activityCount = item["Custom 05"].ToString();
-                    //if (!activityCount.Equals(issueActivityCount.ToString(CultureInfo.InvariantCulture), StringComparison.OrdinalIgnoreCase))
-                    //{
-                    //    hasChange = true;
-                    //}
+                    var commentParts = itemLink.Comment.Split(':');
+                    var itemLinkActivityCount = commentParts[1];
 
-                    //this.logger.Debug("Found existing workitem: {Id}, {activityCount}", item.Id, activityCount);
-                    //this.logger.Debug("Activity count for issue: {Activity}", issueActivityCount);
+                    item = this.workItemStore.GetWorkItem(itemLink.RelatedWorkItemId);
+                    if (!itemLinkActivityCount.Equals(issueActivityCount.ToString(CultureInfo.InvariantCulture), StringComparison.OrdinalIgnoreCase))
+                    {
+                        hasChange = true;
+                    }
+
+                    this.logger.Debug("Found existing workitem: {Id}, {activityCount}", item.Id, itemLinkActivityCount);
+                    this.logger.Debug("Activity count for issue: {Activity}", issueActivityCount);
                     break;
                 }
             }
