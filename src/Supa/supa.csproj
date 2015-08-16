@@ -33,9 +33,6 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="CommandLine">
-      <HintPath>..\..\packages\CommandLineParser.1.9.71\lib\net45\CommandLine.dll</HintPath>
-    </Reference>
     <Reference Include="JsonConfig">
       <HintPath>..\..\packages\JsonConfig.1.0.0\lib\JsonConfig.dll</HintPath>
     </Reference>
@@ -63,7 +60,6 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Arguments.cs" />
     <Compile Include="CsvSink.cs" />
     <Compile Include="Issue.cs" />
     <Compile Include="ExchangeSource.cs" />

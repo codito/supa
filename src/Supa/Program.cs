@@ -40,29 +40,6 @@ namespace Supa
                     var app = new SupaApp();
                     dynamic appConfig = app.Configuration;
 
-                    // Parse arguments
-                    // Log.Logger.Verbose("Parsing command line arguments.");
-                    // var invokedVerb = string.Empty;
-                    // object invokedVerbInstance;
-
-                    // var options = new Arguments();
-                    // if (!CommandLine.Parser.Default.ParseArgumentsStrict(
-                    // args,
-                    // options,
-                    // (verb, subOptions) =>
-                    // {
-                    // // if parsing succeeds the verb name and correct instance
-                    // // will be passed to onVerbCommand delegate (string,object)
-                    // invokedVerb = verb;
-                    // invokedVerbInstance = subOptions;
-                    // }))
-                    // {
-                    // //Environment.Exit(CommandLine.Parser.DefaultExitCodeFail);
-                    // }
-
-                    // if (invokedVerb == "sync")
-                    // {
-                    // var commitSubOptions = (CommitSubOptions)invokedVerbInstance;
                     var credential = new NetworkCredential(
                         appConfig.ExchangeSource.Username,
                         appConfig.ExchangeSource.Password,
@@ -82,7 +59,6 @@ namespace Supa
                         tfsSink.UpdateWorkItem(issue);
                     }
 
-                    // }
                     Log.Logger.Information("Exit.");
                     Thread.Sleep(15 * 60 * 1000);
                 }
