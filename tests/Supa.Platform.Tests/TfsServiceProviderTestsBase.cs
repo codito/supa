@@ -10,6 +10,7 @@ namespace Supa.Platform.Tests
     using Microsoft.VisualStudio.TestTools.UnitTesting;
 
     using Supa.Platform;
+    using TestDoubles;
 
     [TestClass]
     public abstract class TfsServiceProviderTestsBase
@@ -18,13 +19,10 @@ namespace Supa.Platform.Tests
         private const string IssueId2 = "issueId2:10";
         private const string IssueTitle1 = "Workitem for Issue 1";
         private const string IssueTitle2 = "Workitem for Issue 2";
+        private readonly int issueActivityCount1 = 5;
 
         private ITfsServiceProvider tfsServiceProvider;
-
         private TfsServiceProviderConfiguration tfsServiceProviderDefaultConfig;
-
-        private int issueActivityCount1 = 5;
-        private int issueActivityCount2 = 10;
 
         private int childWorkItem1;
 
@@ -100,7 +98,7 @@ namespace Supa.Platform.Tests
             var tfsWorkItem = this.tfsServiceProvider.GetWorkItemForIssue(IssueId1, this.issueActivityCount1);
 
             tfsWorkItem.HasChange.Should().BeFalse();
-            tfsWorkItem.IssueId.Should().Be(IssueId1);
+            tfsWorkItem.IssueSignature.Should().Be($"{IssueId1}:{this.issueActivityCount1}");
         }
 
         [TestMethod]
@@ -112,7 +110,7 @@ namespace Supa.Platform.Tests
             var tfsWorkItem = this.tfsServiceProvider.GetWorkItemForIssue(IssueId1, this.issueActivityCount1 + 10);
 
             tfsWorkItem.HasChange.Should().BeTrue();
-            tfsWorkItem.IssueId.Should().Be(IssueId1);
+            tfsWorkItem.IssueSignature.Should().Be($"{IssueId1}:{this.issueActivityCount1+10}");
         }
 
         [TestMethod]
@@ -128,7 +126,7 @@ namespace Supa.Platform.Tests
             var tfsWorkItem = this.tfsServiceProvider.GetWorkItemForIssue(IssueId2, this.issueActivityCount1 + 10);
 
             tfsWorkItem.HasChange.Should().BeTrue();
-            tfsWorkItem.IssueId.Should().Be(IssueId2);
+            tfsWorkItem.IssueSignature.Should().Be($"{IssueId2}:{this.issueActivityCount1+10}");
         }
 
         [TestMethod]
@@ -141,7 +139,53 @@ namespace Supa.Platform.Tests
             var tfsWorkItem = this.tfsServiceProvider.GetWorkItemForIssue("issueid3", 1);
 
             tfsWorkItem.HasChange.Should().BeTrue();
-            tfsWorkItem.IssueId.Should().Be("issueid3");
+            tfsWorkItem.IssueSignature.Should().Be("issueid3:1");
+        }
+
+        [TestMethod]
+        public void TfsServiceProviderSaveWorkItemShouldThrowForInvalidItemType()
+        {
+            var tfsWorkItem = new TestableTfsWorkItem<int>(20);
+
+            Action action = () => this.tfsServiceProvider.SaveWorkItem(tfsWorkItem);
+
+            action.ShouldThrow<InvalidOperationException>();
+        }
+
+        [TestMethod]
+        public void TfsServiceProviderSaveWorkItemShouldUpdateLinkCommentIfActivityCountIsModified()
+        {
+            // Setup a existing workitem with activity count as 1
+            this.tfsServiceProvider.ConfigureAsync(this.tfsServiceProviderDefaultConfig).Wait();
+            var tfsWorkItem = this.tfsServiceProvider.GetWorkItemForIssue("issueid4", 1);
+            tfsWorkItem.UpdateField("Title", "TfsServiceProviderTests: Workitem 4");
+            this.tfsServiceProvider.SaveWorkItem(tfsWorkItem);
+
+            // Query for an updated activity count, save the item
+            tfsWorkItem = this.tfsServiceProvider.GetWorkItemForIssue("issueid4", 2);
+            this.tfsServiceProvider.SaveWorkItem(tfsWorkItem);
+            tfsWorkItem.HasChange.Should().BeTrue();
+            tfsWorkItem.IssueSignature.Should().Be("issueid4:2");
+
+            // Query for the same activity count
+            tfsWorkItem = this.tfsServiceProvider.GetWorkItemForIssue("issueid4", 2);
+            tfsWorkItem.HasChange.Should().BeFalse();
+            tfsWorkItem.IssueSignature.Should().Be("issueid4:2");
+        }
+
+        [TestMethod]
+        public void TfsServiceProviderSaveWorkItemShouldAddLinkIfWorkItemIsNew()
+        {
+            this.tfsServiceProvider.ConfigureAsync(this.tfsServiceProviderDefaultConfig).Wait();
+            var tfsWorkItem = this.tfsServiceProvider.GetWorkItemForIssue("issueid5", 1);
+            tfsWorkItem.HasChange.Should().BeTrue();
+
+            tfsWorkItem.UpdateField("Title", "TfsServiceProviderTests: Workitem 5");
+            this.tfsServiceProvider.SaveWorkItem(tfsWorkItem);
+
+            tfsWorkItem = this.tfsServiceProvider.GetWorkItemForIssue("issueid5", 1);
+            tfsWorkItem.HasChange.Should().BeFalse();
+            tfsWorkItem.IssueSignature.Should().Be("issueid5:1");
         }
 
         public abstract ITfsServiceProvider CreateTfsServiceProvider();

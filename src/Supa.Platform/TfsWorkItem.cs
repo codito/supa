@@ -60,9 +60,11 @@ namespace Supa.Platform
         public object Item { get; }
 
         /// <summary>
-        /// Gets or sets the issue id for the mail.
+        /// Gets or sets the issue signature for the mail conversation.
+        /// An issue signature uniquely represents an email thread state, it is concatenation of
+        /// thread if from email provider and the activity count.
         /// </summary>
-        public string IssueId { get; set; }
+        public string IssueSignature { get; set; }
 
         /// <summary>
         /// Gets the base type for underlying work item object.

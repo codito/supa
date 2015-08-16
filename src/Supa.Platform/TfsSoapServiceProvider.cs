@@ -83,6 +83,7 @@ namespace Supa.Platform
                 throw new Exception("Provider is not initialized. Have you called ConfigureAsync?");
             }
 
+            this.parentWorkItem = this.workItemStore.GetWorkItem(this.parentWorkItem.Id);
             WorkItem item = null;
             var hasChange = false;
             foreach (var link in this.parentWorkItem.Links)
@@ -111,7 +112,8 @@ namespace Supa.Platform
                 hasChange = true;
             }
 
-            return new TfsWorkItem(item) { HasChange = hasChange, IssueId = issueId };
+            var issueSignature = $"{issueId}:{issueActivityCount}";
+            return new TfsWorkItem(item) { HasChange = hasChange, IssueSignature = issueSignature };
         }
 
         /// <inheritdoc/>
@@ -126,8 +128,19 @@ namespace Supa.Platform
             if (item.IsNew)
             {
                 var linkType = this.workItemStore.WorkItemLinkTypes["System.LinkTypes.Hierarchy"];
-                var link = new WorkItemLink(linkType.ReverseEnd, this.parentWorkItem.Id) { Comment = tfsWorkItem.IssueId };
+                var link = new WorkItemLink(linkType.ReverseEnd, this.parentWorkItem.Id) { Comment = tfsWorkItem.IssueSignature };
                 item.Links.Add(link);
+            }
+            else
+            {
+                foreach (var link in item.Links)
+                {
+                    var linkToParent = link as RelatedLink;
+                    if (linkToParent != null && linkToParent.RelatedWorkItemId == this.parentWorkItem.Id)
+                    {
+                        linkToParent.Comment = tfsWorkItem.IssueSignature;
+                    }
+                }
             }
 
             item.Validate();

@@ -10,17 +10,7 @@ namespace Supa.Platform.Tests
     public class TfsServiceProviderSimulatorTests : TfsServiceProviderTestsBase
     {
         private static int parentWorkItemId;
-
-        private static int workItemSeed;
-
         private TfsServiceProviderSimulator tfsServiceProviderSimulator;
-
-
-        [ClassInitialize]
-        public static void InitializeTestSuite(TestContext testContext)
-        {
-            workItemSeed = 1020;
-        }
 
         public override ITfsServiceProvider CreateTfsServiceProvider()
         {
@@ -30,9 +20,7 @@ namespace Supa.Platform.Tests
 
         public override int CreateWorkItem(string title)
         {
-            var workItemId = workItemSeed++;
-            this.tfsServiceProviderSimulator.CreateWorkItem(workItemId, title);
-            return workItemId;
+            return this.tfsServiceProviderSimulator.CreateWorkItem(title);
         }
 
         public override void AddLinkToWorkItem(int parentId, int childId, string comment)

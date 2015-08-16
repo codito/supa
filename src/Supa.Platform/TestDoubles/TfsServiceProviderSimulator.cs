@@ -110,13 +110,31 @@ namespace Supa.Platform.TestDoubles
                 hasChange = true;
             }
 
-            return new InMemoryTfsWorkItem(workItem) { HasChange = hasChange, IssueId = issueId };
+            var issueSignature = $"{issueId}:{issueActivityCount}";
+            return new InMemoryTfsWorkItem(workItem) { HasChange = hasChange, IssueSignature = issueSignature };
         }
 
         /// <inheritdoc/>
         public void SaveWorkItem(TfsWorkItem tfsWorkItem)
         {
-            throw new NotImplementedException();
+            var workItem = tfsWorkItem.Item as InMemoryWorkItem;
+            if (workItem == null)
+            {
+                throw new InvalidOperationException("Invalid TfsWorkItem type.");
+            }
+
+            if (this.workItems.Contains(workItem))
+            {
+                var parentWorkItem = this.workItems.Single(w => w.Id == this.parentWorkItemId);
+                var workItemLink = parentWorkItem.Links.Single(l => l.RelatedWorkItemId == workItem.Id);
+
+                workItemLink.Comment = tfsWorkItem.IssueSignature;
+            }
+            else
+            {
+                this.workItems.Add(workItem);
+                this.AddLinkToWorkItem(this.parentWorkItemId, workItem.Id, tfsWorkItem.IssueSignature);
+            }
         }
 
         #region Testability Methods
@@ -124,11 +142,13 @@ namespace Supa.Platform.TestDoubles
         /// <summary>
         /// Creates a work item in memory.
         /// </summary>
-        /// <param name="id">Work item id.</param>
         /// <param name="title">Work item title.</param>
-        public void CreateWorkItem(int id, string title)
+        public int CreateWorkItem(string title)
         {
-            this.workItems.Add(new InMemoryWorkItem { Id = id, Title = title });
+            var workItem = new InMemoryWorkItem { Title = title };
+            this.workItems.Add(workItem);
+
+            return workItem.Id;
         }
 
         /// <summary>
@@ -147,21 +167,39 @@ namespace Supa.Platform.TestDoubles
             this.workItems.Single(w => w.Id == parentId).Links.Add(workItemLink);
         }
 
-        private class InMemoryWorkItem
+        public class InMemoryWorkItem
         {
+            private static int workItemSeed = 1020;
+            private readonly Dictionary<string, string> fieldsDictionary;
+
             public InMemoryWorkItem()
             {
+                this.Id = workItemSeed++;
                 this.Links = new List<InMemoryWorkItemLink>();
+                this.fieldsDictionary = new Dictionary<string, string>();
             }
 
-            public int Id { get; set; }
+            public int Id { get; private set; }
 
             public string Title { get; set; }
 
-            public List<InMemoryWorkItemLink> Links { get; set; } 
+            public List<InMemoryWorkItemLink> Links { get; set; }
+
+            public string this[string fieldName]
+            {
+                get
+                {
+                    return this.fieldsDictionary[fieldName];
+                }
+
+                set
+                {
+                    this.fieldsDictionary[fieldName] = value;
+                }
+            }
         }
 
-        private class InMemoryWorkItemLink
+        public class InMemoryWorkItemLink
         {
             public int RelatedWorkItemId { get; set; }
 
