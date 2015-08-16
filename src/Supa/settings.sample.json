@@ -1,0 +1,19 @@
+﻿{
+	"ExchangeSource": {
+		"ServiceUri": "https://outlook.office365.com/EWS/Exchange.asmx",
+		"Username": "email@outlook.onmicrosoft.com",
+		"Password": "SuperSecretPAssW0rd!",
+		"FolderName": "SupaDemo"
+	},
+	"TfsSink": {
+		"ServiceUri": "https://supademo.visualstudio.com/DefaultCollection",
+		"Username": "tfsuser",
+		"Password": "tfspersonalAccessTokenWithReadWriteAccessToWorkItems",
+		"ParentWorkItem": 346,
+		"WorkItemTemplate": {
+			"Title": "{{Topic}}",
+			"Description": "{{Description}}",
+			"Field1": "Default Value"
+		}
+	}
+}

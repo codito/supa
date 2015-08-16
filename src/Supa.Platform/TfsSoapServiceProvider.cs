@@ -15,6 +15,7 @@ namespace Supa.Platform
     using System.Net;
     using System.Threading.Tasks;
 
+    using Microsoft.TeamFoundation.Build.WebApi;
     using Microsoft.TeamFoundation.Client;
     using Microsoft.TeamFoundation.WorkItemTracking.Client;
 
@@ -56,23 +57,29 @@ namespace Supa.Platform
                 throw new ArgumentNullException(nameof(configuration));
             }
 
+            this.logger.Debug("Configure of TfsSoapServiceProvider started...");
             var networkCredential = new NetworkCredential(configuration.Username, configuration.Password);
             var tfsClientCredentials = new TfsClientCredentials(new BasicAuthCredential(networkCredential)) { AllowInteractive = false };
             var tfsProjectCollection = new TfsTeamProjectCollection(this.serviceUri, tfsClientCredentials);
             tfsProjectCollection.Authenticate();
             tfsProjectCollection.EnsureAuthenticated();
+            this.logger.Debug("Authentication successful for {serviceUri}.", this.serviceUri.AbsoluteUri);
 
             await Task.Run(
                 () =>
                     {
+                        this.logger.Debug("Fetching workitem for id {parentWorkItemId}.", configuration.ParentWorkItemId);
                         this.workItemStore = new WorkItemStore(tfsProjectCollection);
                         this.parentWorkItem = this.workItemStore.GetWorkItem(configuration.ParentWorkItemId);
+                        this.logger.Debug("Found parent work item '{title}'.", this.parentWorkItem.Title);
                     });
+            this.logger.Verbose("Tfs service provider configuration complete.");
         }
 
         /// <inheritdoc/>
         public TfsWorkItem GetWorkItemForIssue(string issueId, int issueActivityCount)
         {
+            this.logger.Debug("Get tfs work item for {issueId}, {issueActivityCount}.", issueId, issueActivityCount);
             if (string.IsNullOrEmpty(issueId))
             {
                 throw new ArgumentNullException(nameof(issueId));
@@ -86,6 +93,7 @@ namespace Supa.Platform
             this.parentWorkItem = this.workItemStore.GetWorkItem(this.parentWorkItem.Id);
             WorkItem item = null;
             var hasChange = false;
+            this.logger.Debug("Loop through all {count} links of parent work item.", this.parentWorkItem.Links.Count);
             foreach (var link in this.parentWorkItem.Links)
             {
                 var itemLink = link as RelatedLink;
@@ -95,24 +103,26 @@ namespace Supa.Platform
                     var itemLinkActivityCount = commentParts[1];
 
                     item = this.workItemStore.GetWorkItem(itemLink.RelatedWorkItemId);
+                    this.logger.Debug("Found existing workitem: {Id}, {activityCount}", item.Id, itemLinkActivityCount);
                     if (!itemLinkActivityCount.Equals(issueActivityCount.ToString(CultureInfo.InvariantCulture), StringComparison.OrdinalIgnoreCase))
                     {
+                        this.logger.Debug("Activity count has changed for the thread. Updated count: {Activity}.", issueActivityCount);
                         hasChange = true;
                     }
 
-                    this.logger.Debug("Found existing workitem: {Id}, {activityCount}", item.Id, itemLinkActivityCount);
-                    this.logger.Debug("Activity count for issue: {Activity}", issueActivityCount);
                     break;
                 }
             }
 
             if (item == null)
             {
+                this.logger.Debug("Need a new tfs work item.");
                 item = this.parentWorkItem.Project.WorkItemTypes["Task"].NewWorkItem();
                 hasChange = true;
             }
 
             var issueSignature = $"{issueId}:{issueActivityCount}";
+            this.logger.Verbose("We've a tfs work item for email thread: {title}.", item.Title);
             return new TfsWorkItem(item) { HasChange = hasChange, IssueSignature = issueSignature };
         }
 
@@ -142,6 +152,7 @@ namespace Supa.Platform
                     }
                 }
             }
+            this.logger.Debug("Added a link to parent work item with {comment}", tfsWorkItem.IssueSignature);
 
             foreach (Field field in item.Validate())
             {
@@ -149,6 +160,7 @@ namespace Supa.Platform
             }
 
             item.Save();
+            this.logger.Verbose("Saved the tfs work item. All is well!");
         }
     }
 }

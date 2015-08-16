@@ -25,7 +25,7 @@ namespace Supa
 
         private readonly ITfsServiceProvider tfsServiceProvider;
 
-        private readonly Dictionary<string, string> fieldMap;
+        private readonly IDictionary<string, object> fieldMap;
 
         private readonly TfsServiceProviderConfiguration tfsServiceProviderConfiguration;
 
@@ -42,7 +42,7 @@ namespace Supa
         /// Parent work item id for all tasks.
         /// </param>
         /// <param name="fieldMap">Map of work item fields to mail properties.</param>
-        public TfsSink(Uri serviceUri, NetworkCredential credential, int parentWorkItem, Dictionary<string, string> fieldMap)
+        public TfsSink(Uri serviceUri, NetworkCredential credential, int parentWorkItem, IDictionary<string, object> fieldMap)
             : this(new TfsSoapServiceProvider(serviceUri), credential, parentWorkItem, fieldMap)
         {
         }
@@ -60,7 +60,7 @@ namespace Supa
         /// Parent work item id for all tasks.
         /// </param>
         /// <param name="fieldMap">Map of work item fields to mail properties.</param>
-        protected TfsSink(ITfsServiceProvider tfsServiceProvider, NetworkCredential credential, int parentWorkItem, Dictionary<string, string> fieldMap)
+        protected TfsSink(ITfsServiceProvider tfsServiceProvider, NetworkCredential credential, int parentWorkItem, IDictionary<string, object> fieldMap)
         {
             if (credential == null)
             {
@@ -114,8 +114,8 @@ namespace Supa
             {
                 // Based on work item template, few fields may be mandatory. If user configures
                 // field map with default values for these fields, update them.
-                var issueField = keyval.Value;
-                switch (keyval.Value)
+                var issueField = keyval.Value.ToString();
+                switch (keyval.Value.ToString())
                 {
                     case "{{Id}}":
                         issueField = issue.Id;
@@ -135,6 +135,7 @@ namespace Supa
             }
 
             this.tfsServiceProvider.SaveWorkItem(tfsWorkItem);
+            this.logger.Information("Updated tfs work item.");
             return true;
         }
     }

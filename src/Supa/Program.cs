@@ -10,6 +10,7 @@
 namespace Supa
 {
     using System;
+    using System.Collections.Generic;
     using System.Net;
     using System.Threading;
 
@@ -38,6 +39,7 @@ namespace Supa
 
                     // TODO Read the settings ini file
                     var app = new SupaApp();
+                    app.ReadConfiguration("settings.json");
                     dynamic appConfig = app.Configuration;
 
                     var credential = new NetworkCredential(
@@ -49,23 +51,26 @@ namespace Supa
                         credential,
                         appConfig.ExchangeSource.FolderName);
 
+                    IDictionary<string, object> workItemTemplate = appConfig.TfsSink.WorkItemTemplate;
                     var tfsSink = new TfsSink(
                         new Uri(appConfig.TfsSink.ServiceUri),
                         new NetworkCredential(appConfig.TfsSink.Username, appConfig.TfsSink.Password), 
                         appConfig.TfsSink.ParentWorkItem,
-                        appConfig.TfsSink.WorkItemTemplate);
+                        workItemTemplate);
+                    tfsSink.Configure();
                     foreach (var issue in source.Issues)
                     {
                         tfsSink.UpdateWorkItem(issue);
                     }
 
                     Log.Logger.Information("Exit.");
-                    Thread.Sleep(15 * 60 * 1000);
                 }
                 catch (Exception ex)
                 {
-                    Console.WriteLine(ex.Message);
+                    Console.WriteLine($"Exception: {ex}");
                 }
+
+                Thread.Sleep(15 * 60 * 1000);
             }
         }
     }

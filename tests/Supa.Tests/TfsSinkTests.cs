@@ -33,13 +33,13 @@ namespace Supa.Tests
                 this.tfsServiceSimulator,
                 new NetworkCredential(),
                 this.parentWorkItemId,
-                new Dictionary<string, string>());
+                new Dictionary<string, object>());
         }
 
         [TestMethod]
         public void TfsSinkShouldThrowIfTfsUrlIsNullOrEmpty()
         {
-            Action createTfsSink = () => new TfsSink(null, new NetworkCredential(), 0, new Dictionary<string, string>());
+            Action createTfsSink = () => new TfsSink(null, new NetworkCredential(), 0, new Dictionary<string, object>());
 
             createTfsSink.ShouldThrow<ArgumentNullException>().And.ParamName.Should().Be("serviceUri");
         }
@@ -47,7 +47,7 @@ namespace Supa.Tests
         [TestMethod]
         public void TfsSinkShouldThrowIfCredentialIsNull()
         {
-            Action action = () => new TfsSink(new Uri("http://dummyUri"), null, 0, new Dictionary<string, string>());
+            Action action = () => new TfsSink(new Uri("http://dummyUri"), null, 0, new Dictionary<string, object>());
 
             action.ShouldThrow<ArgumentNullException>().And.ParamName.Should().Be("credential");
         }
@@ -75,7 +75,7 @@ namespace Supa.Tests
                 this.tfsServiceSimulator,
                 new NetworkCredential(),
                 -205,
-                new Dictionary<string, string>());
+                new Dictionary<string, object>());
             Action action = () => tfsSink.Configure();
 
             action.ShouldThrow<Exception>();
@@ -96,7 +96,7 @@ namespace Supa.Tests
         [TestMethod]
         public void TfsSinkUpdateWorkItemShouldUpdateFieldsIfWorkItemForIssueDoesNotExist()
         {
-            var fieldMap = new Dictionary<string, string>
+            var fieldMap = new Dictionary<string, object>
                                {
                                    { "Title", "{{Topic}}" },
                                    { "Description", "{{Description}}" },
@@ -120,7 +120,7 @@ namespace Supa.Tests
         [TestMethod]
         public void TfsSinkUpdateWorkItemShouldUpdateFieldsIfTemplateTextDoesNotMatch()
         {
-            var fieldMap = new Dictionary<string, string>
+            var fieldMap = new Dictionary<string, object>
                                {
                                    { "Title", "Dummy Title" }, // Title is a mandatory field for simulator
                                    { "Foo", "{{Topic1}}" },
@@ -142,7 +142,7 @@ namespace Supa.Tests
 
     public class TestableTfsSink : TfsSink
     {
-        public TestableTfsSink(ITfsServiceProvider serviceProvider, NetworkCredential credential, int parentWorkItemId, Dictionary<string, string> fieldMap)
+        public TestableTfsSink(ITfsServiceProvider serviceProvider, NetworkCredential credential, int parentWorkItemId, Dictionary<string, object> fieldMap)
             : base(serviceProvider, credential, parentWorkItemId, fieldMap)
         {
         }
