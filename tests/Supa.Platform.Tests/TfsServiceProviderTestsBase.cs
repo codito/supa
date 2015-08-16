@@ -132,18 +132,16 @@ namespace Supa.Platform.Tests
         }
 
         [TestMethod]
-        public void TfsServiceProviderGetWorkItemShouldThrowRelatedLinkForInvalidCommentStringEndsWithColonInWorkitemLink()
+        public void TfsServiceProviderGetWorkItemShouldReturnNewItemIfParentWorkItemHasNoLinks()
         {
-            var childWorkItem3 = this.CreateWorkItem("TfsServiceProviderTests: Workitem 3");
-            this.AddLinkToWorkItem(
-                this.tfsServiceProviderDefaultConfig.ParentWorkItemId,
-                childWorkItem3,
-                IssueId2 + ":");
+            var parentWorkItemId = this.CreateWorkItem("TfsServiceProviderTests: Workitem 3");
+            this.tfsServiceProviderDefaultConfig.ParentWorkItemId = parentWorkItemId;
             this.tfsServiceProvider.ConfigureAsync(this.tfsServiceProviderDefaultConfig).Wait();
 
-            Action action = () => this.tfsServiceProvider.GetWorkItemForIssue(IssueId2, this.issueActivityCount2);
+            var tfsWorkItem = this.tfsServiceProvider.GetWorkItemForIssue("issueid3", 1);
 
-            action.ShouldThrow<ArgumentException>();
+            tfsWorkItem.HasChange.Should().BeTrue();
+            tfsWorkItem.IssueId.Should().Be("issueid3");
         }
 
         public abstract ITfsServiceProvider CreateTfsServiceProvider();
