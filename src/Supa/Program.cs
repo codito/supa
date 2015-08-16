@@ -74,11 +74,12 @@ namespace Supa
 
                     var tfsSink = new TfsSink(
                         new Uri(appConfig.TfsSink.ServiceUri),
+                        new NetworkCredential(appConfig.TfsSink.Username, appConfig.TfsSink.Password), 
                         appConfig.TfsSink.ParentWorkItem,
                         appConfig.TfsSink.WorkItemTemplate);
                     foreach (var issue in source.Issues)
                     {
-                        tfsSink.Serialize(issue);
+                        tfsSink.UpdateWorkItem(issue);
                     }
 
                     // }

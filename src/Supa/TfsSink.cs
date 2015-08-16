@@ -8,8 +8,9 @@
 namespace Supa
 {
     using System;
+    using System.Collections.Generic;
     using System.Globalization;
-    using System.IO;
+    using System.Net;
 
     using Serilog;
 
@@ -22,9 +23,9 @@ namespace Supa
     {
         private readonly ILogger logger;
 
-        private readonly string workItemTemplatePath;
-
         private readonly ITfsServiceProvider tfsServiceProvider;
+
+        private readonly Dictionary<string, string> fieldMap;
 
         private readonly TfsServiceProviderConfiguration tfsServiceProviderConfiguration;
 
@@ -34,87 +35,107 @@ namespace Supa
         /// <param name="serviceUri">
         /// Service end point.
         /// </param>
+        /// <param name="credential">
+        /// The credential.
+        /// </param>
         /// <param name="parentWorkItem">
         /// Parent work item id for all tasks.
         /// </param>
-        /// <param name="issueTemplatePath">
-        /// Path to a work item template.
-        /// </param>
-        public TfsSink(Uri serviceUri, int parentWorkItem, string issueTemplatePath)
-            : this(new TfsSoapServiceProvider(serviceUri), parentWorkItem, issueTemplatePath)
+        /// <param name="fieldMap">Map of work item fields to mail properties.</param>
+        public TfsSink(Uri serviceUri, NetworkCredential credential, int parentWorkItem, Dictionary<string, string> fieldMap)
+            : this(new TfsSoapServiceProvider(serviceUri), credential, parentWorkItem, fieldMap)
         {
         }
 
         /// <summary>
         /// Initializes a new instance of the <see cref="TfsSink"/> class.
         /// </summary>
-        /// <param name="tfsServiceProvider">Service endpoint.</param>
-        /// <param name="parentWorkItem">The parent work item.</param>
-        /// <param name="issueTemplatePath">The issue template path.</param>
-        protected TfsSink(ITfsServiceProvider tfsServiceProvider, int parentWorkItem, string issueTemplatePath)
+        /// <param name="tfsServiceProvider">
+        /// Service endpoint.
+        /// </param>
+        /// <param name="credential">
+        /// The credential.
+        /// </param>
+        /// <param name="parentWorkItem">
+        /// Parent work item id for all tasks.
+        /// </param>
+        /// <param name="fieldMap">Map of work item fields to mail properties.</param>
+        protected TfsSink(ITfsServiceProvider tfsServiceProvider, NetworkCredential credential, int parentWorkItem, Dictionary<string, string> fieldMap)
         {
+            if (credential == null)
+            {
+                throw new ArgumentNullException(nameof(credential));
+            }
+
+            if (fieldMap == null)
+            {
+                throw new ArgumentNullException(nameof(fieldMap));
+            }
+
             this.logger = Log.Logger.ForContext<TfsSink>();
 
             this.tfsServiceProvider = tfsServiceProvider;
-            this.workItemTemplatePath = issueTemplatePath;
-            this.tfsServiceProviderConfiguration = new TfsServiceProviderConfiguration(null, null)
+            this.fieldMap = fieldMap;
+            this.tfsServiceProviderConfiguration = new TfsServiceProviderConfiguration(credential.UserName, credential.Password)
             {
                 ParentWorkItemId = parentWorkItem
             };
         }
 
         /// <summary>
-        /// The serialize.
+        /// Configures the service provider connection and validates the user settings.
+        /// </summary>
+        public void Configure()
+        {
+            this.tfsServiceProvider.ConfigureAsync(this.tfsServiceProviderConfiguration).Wait();
+        }
+
+        /// <summary>
+        /// Create or update a <c>Tfs</c> work item for a given <see cref="Issue"/>.
         /// </summary>
         /// <param name="issue">
-        /// The issue.
+        /// An issue instance.
         /// </param>
-        public void Serialize(Issue issue)
+        /// <returns>
+        /// True if the <c>Tfs</c> update is done, false is no update is required.
+        /// </returns>
+        public bool UpdateWorkItem(Issue issue)
         {
-            this.tfsServiceProvider.ConfigureAsync(this.tfsServiceProviderConfiguration);
             var tfsWorkItem = this.tfsServiceProvider.GetWorkItemForIssue(issue.Id, issue.Activity);
 
             // Don't process if the issue is same as existing item
             if (tfsWorkItem.HasChange == false)
             {
                 this.logger.Information("Skip creating tfs workitem.");
-                return;
+                return false;
             }
 
-            var template = File.ReadAllText(this.workItemTemplatePath);
-
-            foreach (var line in template.Split(new[] { Environment.NewLine }, StringSplitOptions.None))
+            foreach (var keyval in this.fieldMap)
             {
-                var keyval = line.Split(new[] { '=' }, 2);
-                if (string.IsNullOrEmpty(keyval[0]))
-                {
-                    continue;
-                }
-
-                var value = keyval[1].Trim();
-                switch (value)
+                // Based on work item template, few fields may be mandatory. If user configures
+                // field map with default values for these fields, update them.
+                var issueField = keyval.Value;
+                switch (keyval.Value)
                 {
                     case "{{Id}}":
-                        value = issue.Id;
+                        issueField = issue.Id;
                         break;
                     case "{{Topic}}":
-                        value = issue.Topic;
+                        issueField = issue.Topic;
                         break;
                     case "{{Description}}":
-                        value = issue.Description.Replace(Environment.NewLine, "<br/>");
-                        break;
-                    case "{{SourceName}}":
-                        value = "vstestsup";
+                        issueField = issue.Description.Replace(Environment.NewLine, "<br/>");
                         break;
                     case "{{Activity}}":
-                        value = issue.Activity.ToString(CultureInfo.InvariantCulture);
+                        issueField = issue.Activity.ToString(CultureInfo.InvariantCulture);
                         break;
                 }
 
-                tfsWorkItem.UpdateField(keyval[0].Trim(), value);
+                tfsWorkItem.UpdateField(keyval.Key, issueField);
             }
 
             this.tfsServiceProvider.SaveWorkItem(tfsWorkItem);
+            return true;
         }
     }
 }
