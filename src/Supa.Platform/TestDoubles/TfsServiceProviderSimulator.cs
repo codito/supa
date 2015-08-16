@@ -132,6 +132,7 @@ namespace Supa.Platform.TestDoubles
             }
             else
             {
+                workItem.Validate();
                 this.workItems.Add(workItem);
                 this.AddLinkToWorkItem(this.parentWorkItemId, workItem.Id, tfsWorkItem.IssueSignature);
             }
@@ -195,6 +196,21 @@ namespace Supa.Platform.TestDoubles
                 set
                 {
                     this.fieldsDictionary[fieldName] = value;
+                }
+            }
+
+            public void Validate()
+            {
+                try
+                {
+                    if (string.IsNullOrEmpty(this["Title"]))
+                    {
+                        throw new Exception("Invalid title");
+                    }
+                }
+                catch (Exception ex)
+                {
+                    throw new ValidationException("Workitem is not ready to save.", ex);
                 }
             }
         }

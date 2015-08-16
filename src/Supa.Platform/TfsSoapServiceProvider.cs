@@ -143,7 +143,11 @@ namespace Supa.Platform
                 }
             }
 
-            item.Validate();
+            foreach (Field field in item.Validate())
+            {
+                this.logger.Warning($"Work item field has invalid value: {field.Name}: {field.Status}");
+            }
+
             item.Save();
         }
     }

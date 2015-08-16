@@ -188,6 +188,19 @@ namespace Supa.Platform.Tests
             tfsWorkItem.IssueSignature.Should().Be("issueid5:1");
         }
 
+        [TestMethod]
+        public void TfsServiceProviderSaveWorkItemShouldThrowIfWorkItemIsNotReadyToSave()
+        {
+            this.tfsServiceProvider.ConfigureAsync(this.tfsServiceProviderDefaultConfig).Wait();
+            var tfsWorkItem = this.tfsServiceProvider.GetWorkItemForIssue("issueid6", 1);
+            tfsWorkItem.HasChange.Should().BeTrue();
+
+            Action action = () => this.tfsServiceProvider.SaveWorkItem(tfsWorkItem);
+
+            action.ShouldThrow<ValidationException>();
+        }
+
+
         public abstract ITfsServiceProvider CreateTfsServiceProvider();
 
         public abstract int CreateWorkItem(string title);
