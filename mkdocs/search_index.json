@@ -1,0 +1,44 @@
+{
+    "docs": [
+        {
+            "location": "/",
+            "text": "Supa\n\n\nA friendly support assistant!\n\n\nSupa listens to your exchange server for emails and creates tfs tasks for them.\nAll of that, with \n 20 lines of json configuration :)\n\n\n\n\n\n\nGetting started\n\n\nGet a copy of Supa from \ngithub\nreleases\n.\n\n\nUnzip it to a directory say \nc:\\supa\n. Just run \n.\\supa.exe\n to run supa. Before\nthat, let's help supa locate the email source and tfs sink. On to\nconfiguration...\n\n\n\n\nConfigure\n\n\nCopy the \nsettings.sample.json\n to \nsettings.json\n. Default settings look like\n\n\n{\n\"ExchangeSource\": {\n    \"ServiceUri\": \"https://outlook.office365.com/EWS/Exchange.asmx\",\n    \"Username\": \"supabot@outlook.onmicrosoft.com\",\n    \"Password\": \"SuperSecretPAssW0rd!\",\n    \"FolderName\": \"SupaDemo\"\n},\n\"TfsSink\": {\n    \"ServiceUri\": \"https://supademo.visualstudio.com/DefaultCollection\",\n    \"Username\": \"tfsuser\",\n    \"Password\": \"tfspersonalAccessTokenWithReadWriteAccessToWorkItems\",\n    \"ParentWorkItem\": 346,\n    \"WorkItemTemplate\": {\n        \"Title\": \"{{Topic}}\",\n        \"Description\": \"{{Description}}\",\n        \"Field1\": \"Default Value\"\n    }\n}\n}\n\n\n\nWe will cover each setting in detail below.\n\n\n\n\nExchange setup\n\n\nFor this example, let's assume your customer emails arrive at the discussion\nlist email id \nsupport@outlook.onmicrosoft.com\n. We're going to add a bot\naccount to the list, let's call that \nsupabot@outlook.onmicrosoft.com\n.\n\n\nSo all emails to \nsupport@outlook.onmicrosoft.com\n arrive in the inbox of\n\nsupabot\n.\n\n\nNow first thing is to isolate those support emails from everything else, let's\ncreate an exchange rule.\n\n\n\n\nWe will have all the support emails move to \nInbox\\SupaDemo\n folder in\n\nsupabot@outlook.onmicrosoft.com\n email account.\n\n\nLet's revisit our json configuration now. It is pretty much self explanatory.\nSupa will listen to new email threads in \nSupaDemo\n folder.\n\n\n\"ExchangeSource\": {\n    \"ServiceUri\": \"https://outlook.office365.com/EWS/Exchange.asmx\",\n    \"Username\": \"supabot@outlook.onmicrosoft.com\",\n    \"Password\": \"SuperSecretPAssW0rd!\",\n    \"FolderName\": \"SupaDemo\"\n},\n\n\n\n\n\nTfs setup\n\n\nSupa uses work item links to identify existing work items for exchange email\nthreads. We need to setup a \nParentWorkItem\n, just another \nFeature\n work item.\nAll the tasks we create will be added as Related Links to this umbrella work\nitem. It makes our job to query these much easier too!\n\n\nSecondly, we need to provide a template for fields to Supa. Based on your team's\nwork item template, the mandatory fields for a work item can differ. Also, supa\nhas some metadata around email threads which we need in the tasks. We will use\nthe \nWorkItemTemplate\n node in \nsettings.json\n for this.\n\n\nHere's how the parent work item looks:\n\n\n\n\nAnd the Task created by Supa:\n\n\n\n\nTfs section in \nsettings.json\n will look like below. For access, we use a tfs\npersonal access token which only has read/write access to work items.\n\n\n\"TfsSink\": {\n    \"ServiceUri\": \"https://supademo.visualstudio.com/DefaultCollection\",\n    \"Username\": \"tfsuser\",\n    \"Password\": \"tfspersonalAccessTokenWithReadWriteAccessToWorkItems\",\n    \"ParentWorkItem\": 346,\n    \"WorkItemTemplate\": {\n        \"Title\": \"{{Topic}}\",\n        \"Description\": \"{{Description}}\",\n        \"Field1\": \"Default Value\"\n    }\n\n\n\nWorkItemTemplate\n field takes following well known inputs.\n\n\n\n\n{{Topic}}\n: Replaced with email subject.\n\n\n{{Description}}\n: Replaced with email description (collates all emails in the\n  conversation)\n\n\n{{Id}}\n: Unique id that identifies an email conversation\n\n\n{{Activity}}\n: Number of emails in the conversation\n\n\n\n\n\n\nSupport\n\n\nPlease create a github issue for any bugs you encounter. We gladly accept pull\nrequests :)\n\n\n\n\nLicense\n\n\nMIT",
+            "title": "Home"
+        },
+        {
+            "location": "/#supa",
+            "text": "A friendly support assistant!  Supa listens to your exchange server for emails and creates tfs tasks for them.\nAll of that, with   20 lines of json configuration :)",
+            "title": "Supa"
+        },
+        {
+            "location": "/#getting-started",
+            "text": "Get a copy of Supa from  github\nreleases .  Unzip it to a directory say  c:\\supa . Just run  .\\supa.exe  to run supa. Before\nthat, let's help supa locate the email source and tfs sink. On to\nconfiguration...",
+            "title": "Getting started"
+        },
+        {
+            "location": "/#configure",
+            "text": "Copy the  settings.sample.json  to  settings.json . Default settings look like  {\n\"ExchangeSource\": {\n    \"ServiceUri\": \"https://outlook.office365.com/EWS/Exchange.asmx\",\n    \"Username\": \"supabot@outlook.onmicrosoft.com\",\n    \"Password\": \"SuperSecretPAssW0rd!\",\n    \"FolderName\": \"SupaDemo\"\n},\n\"TfsSink\": {\n    \"ServiceUri\": \"https://supademo.visualstudio.com/DefaultCollection\",\n    \"Username\": \"tfsuser\",\n    \"Password\": \"tfspersonalAccessTokenWithReadWriteAccessToWorkItems\",\n    \"ParentWorkItem\": 346,\n    \"WorkItemTemplate\": {\n        \"Title\": \"{{Topic}}\",\n        \"Description\": \"{{Description}}\",\n        \"Field1\": \"Default Value\"\n    }\n}\n}  We will cover each setting in detail below.",
+            "title": "Configure"
+        },
+        {
+            "location": "/#exchange-setup",
+            "text": "For this example, let's assume your customer emails arrive at the discussion\nlist email id  support@outlook.onmicrosoft.com . We're going to add a bot\naccount to the list, let's call that  supabot@outlook.onmicrosoft.com .  So all emails to  support@outlook.onmicrosoft.com  arrive in the inbox of supabot .  Now first thing is to isolate those support emails from everything else, let's\ncreate an exchange rule.   We will have all the support emails move to  Inbox\\SupaDemo  folder in supabot@outlook.onmicrosoft.com  email account.  Let's revisit our json configuration now. It is pretty much self explanatory.\nSupa will listen to new email threads in  SupaDemo  folder.  \"ExchangeSource\": {\n    \"ServiceUri\": \"https://outlook.office365.com/EWS/Exchange.asmx\",\n    \"Username\": \"supabot@outlook.onmicrosoft.com\",\n    \"Password\": \"SuperSecretPAssW0rd!\",\n    \"FolderName\": \"SupaDemo\"\n},",
+            "title": "Exchange setup"
+        },
+        {
+            "location": "/#tfs-setup",
+            "text": "Supa uses work item links to identify existing work items for exchange email\nthreads. We need to setup a  ParentWorkItem , just another  Feature  work item.\nAll the tasks we create will be added as Related Links to this umbrella work\nitem. It makes our job to query these much easier too!  Secondly, we need to provide a template for fields to Supa. Based on your team's\nwork item template, the mandatory fields for a work item can differ. Also, supa\nhas some metadata around email threads which we need in the tasks. We will use\nthe  WorkItemTemplate  node in  settings.json  for this.  Here's how the parent work item looks:   And the Task created by Supa:   Tfs section in  settings.json  will look like below. For access, we use a tfs\npersonal access token which only has read/write access to work items.  \"TfsSink\": {\n    \"ServiceUri\": \"https://supademo.visualstudio.com/DefaultCollection\",\n    \"Username\": \"tfsuser\",\n    \"Password\": \"tfspersonalAccessTokenWithReadWriteAccessToWorkItems\",\n    \"ParentWorkItem\": 346,\n    \"WorkItemTemplate\": {\n        \"Title\": \"{{Topic}}\",\n        \"Description\": \"{{Description}}\",\n        \"Field1\": \"Default Value\"\n    }  WorkItemTemplate  field takes following well known inputs.   {{Topic}} : Replaced with email subject.  {{Description}} : Replaced with email description (collates all emails in the\n  conversation)  {{Id}} : Unique id that identifies an email conversation  {{Activity}} : Number of emails in the conversation",
+            "title": "Tfs setup"
+        },
+        {
+            "location": "/#support",
+            "text": "Please create a github issue for any bugs you encounter. We gladly accept pull\nrequests :)",
+            "title": "Support"
+        },
+        {
+            "location": "/#license",
+            "text": "MIT",
+            "title": "License"
+        }
+    ]
+}

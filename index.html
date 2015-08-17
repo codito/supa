@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>Supa</title>
+  
+
+  <link rel="shortcut icon" href="./img/favicon.ico">
+
+  
+  <link href='https://fonts.googleapis.com/css?family=Lato:400,700|Roboto+Slab:400,700|Inconsolata:400,700' rel='stylesheet' type='text/css'>
+
+  <link rel="stylesheet" href="./css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="./css/theme_extra.css" type="text/css" />
+  <link rel="stylesheet" href="./css/highlight.css">
+
+  
+  <script>
+    // Current page data
+    var mkdocs_page_name = "None";
+  </script>
+  
+  <script src="./js/jquery-2.1.1.min.js"></script>
+  <script src="./js/modernizr-2.8.3.min.js"></script>
+  <script type="text/javascript" src="./js/highlight.pack.js"></script>
+  <script src="./js/theme.js"></script> 
+
+  
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side stickynav">
+      <div class="wy-side-nav-search">
+        <a href="." class="icon icon-home"> Supa</a>
+        <div role="search">
+  <form id ="rtd-search-form" class="wy-form" action="./search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+  </form>
+</div>
+      </div>
+
+      <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+        <ul class="current">
+          
+            <li>
+    <li class="toctree-l1 current">
+        <a class="current" href=".">Home</a>
+        
+            <ul>
+            
+                <li class="toctree-l3"><a href="#supa">Supa</a></li>
+                
+                    <li><a class="toctree-l4" href="#getting-started">Getting started</a></li>
+                
+                    <li><a class="toctree-l4" href="#configure">Configure</a></li>
+                
+                    <li><a class="toctree-l4" href="#exchange-setup">Exchange setup</a></li>
+                
+                    <li><a class="toctree-l4" href="#tfs-setup">Tfs setup</a></li>
+                
+                    <li><a class="toctree-l4" href="#support">Support</a></li>
+                
+                    <li><a class="toctree-l4" href="#license">License</a></li>
+                
+            
+            </ul>
+        
+    </li>
+<li>
+          
+        </ul>
+      </div>
+      &nbsp;
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+        <a href=".">Supa</a>
+      </nav>
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href=".">Docs</a> &raquo;</li>
+    
+      
+    
+    <li>Home</li>
+    <li class="wy-breadcrumbs-aside">
+      
+        
+          <a href="https://github.com/codito/supa" class="icon icon-github"> Edit on GitHub</a>
+        
+      
+    </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main">
+            <div class="section">
+              
+                <h1 id="supa">Supa</h1>
+<p>A friendly support assistant!</p>
+<p>Supa listens to your exchange server for emails and creates tfs tasks for them.
+All of that, with &lt; 20 lines of json configuration :)</p>
+<p><img alt="Supa Commandline" src="./img/supa.cli.png" /></p>
+<hr />
+<h2 id="getting-started">Getting started</h2>
+<p>Get a copy of Supa from <a href="https://github.com/codito/supa/releases">github
+releases</a>.</p>
+<p>Unzip it to a directory say <code>c:\supa</code>. Just run <code>.\supa.exe</code> to run supa. Before
+that, let's help supa locate the email source and tfs sink. On to
+configuration...</p>
+<hr />
+<h2 id="configure">Configure</h2>
+<p>Copy the <code>settings.sample.json</code> to <code>settings.json</code>. Default settings look like</p>
+<pre><code>{
+"ExchangeSource": {
+    "ServiceUri": "https://outlook.office365.com/EWS/Exchange.asmx",
+    "Username": "supabot@outlook.onmicrosoft.com",
+    "Password": "SuperSecretPAssW0rd!",
+    "FolderName": "SupaDemo"
+},
+"TfsSink": {
+    "ServiceUri": "https://supademo.visualstudio.com/DefaultCollection",
+    "Username": "tfsuser",
+    "Password": "tfspersonalAccessTokenWithReadWriteAccessToWorkItems",
+    "ParentWorkItem": 346,
+    "WorkItemTemplate": {
+        "Title": "{{Topic}}",
+        "Description": "{{Description}}",
+        "Field1": "Default Value"
+    }
+}
+}
+</code></pre>
+<p>We will cover each setting in detail below.</p>
+<hr />
+<h2 id="exchange-setup">Exchange setup</h2>
+<p>For this example, let's assume your customer emails arrive at the discussion
+list email id <code>support@outlook.onmicrosoft.com</code>. We're going to add a bot
+account to the list, let's call that <code>supabot@outlook.onmicrosoft.com</code>.</p>
+<p>So all emails to <code>support@outlook.onmicrosoft.com</code> arrive in the inbox of
+<code>supabot</code>.</p>
+<p>Now first thing is to isolate those support emails from everything else, let's
+create an exchange rule.</p>
+<p><img alt="Configure exchange rule" src="./img/configure.exchange.png" /></p>
+<p>We will have all the support emails move to <code>Inbox\SupaDemo</code> folder in
+<code>supabot@outlook.onmicrosoft.com</code> email account.</p>
+<p>Let's revisit our json configuration now. It is pretty much self explanatory.
+Supa will listen to new email threads in <code>SupaDemo</code> folder.</p>
+<pre><code>"ExchangeSource": {
+    "ServiceUri": "https://outlook.office365.com/EWS/Exchange.asmx",
+    "Username": "supabot@outlook.onmicrosoft.com",
+    "Password": "SuperSecretPAssW0rd!",
+    "FolderName": "SupaDemo"
+},
+</code></pre>
+<hr />
+<h2 id="tfs-setup">Tfs setup</h2>
+<p>Supa uses work item links to identify existing work items for exchange email
+threads. We need to setup a <code>ParentWorkItem</code>, just another <code>Feature</code> work item.
+All the tasks we create will be added as Related Links to this umbrella work
+item. It makes our job to query these much easier too!</p>
+<p>Secondly, we need to provide a template for fields to Supa. Based on your team's
+work item template, the mandatory fields for a work item can differ. Also, supa
+has some metadata around email threads which we need in the tasks. We will use
+the <code>WorkItemTemplate</code> node in <code>settings.json</code> for this.</p>
+<p>Here's how the parent work item looks:</p>
+<p><img alt="Configure TFS parent work item" src="./img/configure.tfs.parentworkitem.png" /></p>
+<p>And the Task created by Supa:</p>
+<p><img alt="TFS task created by Supa" src="./img/configure.tfs.task.png" /></p>
+<p>Tfs section in <code>settings.json</code> will look like below. For access, we use a tfs
+personal access token which only has read/write access to work items.</p>
+<pre><code>"TfsSink": {
+    "ServiceUri": "https://supademo.visualstudio.com/DefaultCollection",
+    "Username": "tfsuser",
+    "Password": "tfspersonalAccessTokenWithReadWriteAccessToWorkItems",
+    "ParentWorkItem": 346,
+    "WorkItemTemplate": {
+        "Title": "{{Topic}}",
+        "Description": "{{Description}}",
+        "Field1": "Default Value"
+    }
+</code></pre>
+<p><code>WorkItemTemplate</code> field takes following well known inputs.</p>
+<ul>
+<li><code>{{Topic}}</code>: Replaced with email subject.</li>
+<li><code>{{Description}}</code>: Replaced with email description (collates all emails in the
+  conversation)</li>
+<li><code>{{Id}}</code>: Unique id that identifies an email conversation</li>
+<li><code>{{Activity}}</code>: Number of emails in the conversation</li>
+</ul>
+<hr />
+<h2 id="support">Support</h2>
+<p>Please create a github issue for any bugs you encounter. We gladly accept pull
+requests :)</p>
+<hr />
+<h2 id="license">License</h2>
+<p>MIT</p>
+              
+            </div>
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <!-- Copyright etc -->
+    
+  </div>
+
+  Built with <a href="http://www.mkdocs.org">MkDocs</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
+</footer>
+	  
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+
+<div class="rst-versions" role="note" style="cursor: pointer">
+    <span class="rst-current-version" data-toggle="rst-current-version">
+      
+          <a class="icon icon-github" style="float: left; color: #fcfcfc"> GitHub</a>
+      
+      
+      
+    </span>
+</div>
+
+</body>
+</html>
+
+<!--
+MkDocs version : 0.14.0
+Build Date UTC : 2015-08-17 02:00:09.875919
+-->
