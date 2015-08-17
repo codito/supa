@@ -14,6 +14,11 @@ Get latest bits of supa from github [releases](https://github.com/codito/supa/re
 
 Please see supa documentation [here](https://codito.github.io/supa).
 
+Supa is just a single executable in loop. Here's the obligatory screenshot of
+supa talking out loud ;)
+
+![Supa in action](https://raw.githubusercontent.com/codito/supa/master/docs/img/supa.cli.png)
+
 ## Contribution
 
 We welcome all kinds of contributions: patches/bug reports/docs and so on. Happy
