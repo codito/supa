@@ -1,0 +1,7 @@
+site_name: Supa
+site_url: https://codito.github.io/supa
+repo_url: https://github.com/codito/supa
+site_description: Supa converts exchange emails to tfs tasks.
+pages:
+- Home: index.md
+theme: readthedocs
