@@ -1,7 +1,7 @@
 # Supa `1.0`
 
 [![Appveyor build status](https://img.shields.io/appveyor/ci/codito/supa.svg)](https://ci.appveyor.com/project/codito/supa)
-[![Coverage status](https://img.shields.io/coveralls/codito/supa.svg)]](https://coveralls.io/github/codito/supa)
+[![Coverage status](https://img.shields.io/coveralls/codito/supa.svg)](https://coveralls.io/github/codito/supa)
 
 Supa is a friendly support assistant! It listens to your exchange mail box and
 converts conversations to TFS tasks.
