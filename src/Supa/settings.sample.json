@@ -9,7 +9,8 @@
 		"ServiceUri": "https://supademo.visualstudio.com/DefaultCollection",
 		"Username": "tfsuser",
 		"Password": "tfspersonalAccessTokenWithReadWriteAccessToWorkItems",
-		"ParentWorkItem": 346,
+        "ParentWorkItem": 346,
+        "WorkItemType": "Task",
 		"WorkItemTemplate": {
 			"Title": "{{Topic}}",
 			"Description": "{{Description}}",

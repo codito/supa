@@ -43,6 +43,8 @@ namespace Supa.Platform
         /// </summary>
         public int ParentWorkItemId { get; set; }
 
-        public Dictionary<string, string> IssueToWorkItemFieldMap { get; } 
+        public Dictionary<string, string> IssueToWorkItemFieldMap { get; }
+
+        public string WorkItemType { get; set; }
     }
 }
