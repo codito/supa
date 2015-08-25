@@ -33,13 +33,14 @@ namespace Supa.Tests
                 this.tfsServiceSimulator,
                 new NetworkCredential(),
                 this.parentWorkItemId,
+                "Task",
                 new Dictionary<string, object>());
         }
 
         [TestMethod]
         public void TfsSinkShouldThrowIfTfsUrlIsNullOrEmpty()
         {
-            Action createTfsSink = () => new TfsSink(null, new NetworkCredential(), 0, new Dictionary<string, object>());
+            Action createTfsSink = () => new TfsSink(null, new NetworkCredential(), 0, "Task", new Dictionary<string, object>());
 
             createTfsSink.ShouldThrow<ArgumentNullException>().And.ParamName.Should().Be("serviceUri");
         }
@@ -47,7 +48,7 @@ namespace Supa.Tests
         [TestMethod]
         public void TfsSinkShouldThrowIfCredentialIsNull()
         {
-            Action action = () => new TfsSink(new Uri("http://dummyUri"), null, 0, new Dictionary<string, object>());
+            Action action = () => new TfsSink(new Uri("http://dummyUri"), null, 0, "Task", new Dictionary<string, object>());
 
             action.ShouldThrow<ArgumentNullException>().And.ParamName.Should().Be("credential");
         }
@@ -55,7 +56,7 @@ namespace Supa.Tests
         [TestMethod]
         public void TfsSinkShouldThrowIfFieldMapIsNull()
         {
-            Action action = () => new TfsSink(new Uri("http://dummyUri"), new NetworkCredential(), 0, null);
+            Action action = () => new TfsSink(new Uri("http://dummyUri"), new NetworkCredential(), 0, "Task", null);
 
             action.ShouldThrow<ArgumentNullException>().And.ParamName.Should().Be("fieldMap");
         }
@@ -75,6 +76,7 @@ namespace Supa.Tests
                 this.tfsServiceSimulator,
                 new NetworkCredential(),
                 -205,
+                "Task",
                 new Dictionary<string, object>());
             Action action = () => tfsSink.Configure();
 
@@ -103,7 +105,55 @@ namespace Supa.Tests
                                    { "IdField", "{{Id}}" },
                                    { "ActivityCount", "{{Activity}}" }
                                };
-            var tfsSink = new TestableTfsSink(this.tfsServiceSimulator, new NetworkCredential(), this.parentWorkItemId, fieldMap);
+            var tfsSink = new TestableTfsSink(this.tfsServiceSimulator, new NetworkCredential(), this.parentWorkItemId, "Task", fieldMap);
+            var issue = new Issue { Id = "issue2", Topic = "issue1Topic", Activity = 1, Description = "descr" };
+            tfsSink.Configure();
+
+            tfsSink.UpdateWorkItem(issue).Should().BeTrue();
+
+            var workItem = this.tfsServiceSimulator.GetWorkItemForIssue("issue2", 1).Item as TfsServiceProviderSimulator.InMemoryWorkItem;
+            Assert.IsNotNull(workItem);
+            workItem["Title"].Should().Be("issue1Topic");
+            workItem["Description"].Should().Be("descr");
+            workItem["IdField"].Should().Be("issue2");
+            workItem["ActivityCount"].Should().Be("1");
+        }
+
+        [TestMethod]
+        public void TfsSinkUpdateWorkItemShouldUpdateFieldsEvenIfWorkItemTypeIsEmpty()
+        {
+            var fieldMap = new Dictionary<string, object>
+                               {
+                                   { "Title", "{{Topic}}" },
+                                   { "Description", "{{Description}}" },
+                                   { "IdField", "{{Id}}" },
+                                   { "ActivityCount", "{{Activity}}" }
+                               };
+            var tfsSink = new TestableTfsSink(this.tfsServiceSimulator, new NetworkCredential(), this.parentWorkItemId, "", fieldMap);
+            var issue = new Issue { Id = "issue2", Topic = "issue1Topic", Activity = 1, Description = "descr" };
+            tfsSink.Configure();
+
+            tfsSink.UpdateWorkItem(issue).Should().BeTrue();
+
+            var workItem = this.tfsServiceSimulator.GetWorkItemForIssue("issue2", 1).Item as TfsServiceProviderSimulator.InMemoryWorkItem;
+            Assert.IsNotNull(workItem);
+            workItem["Title"].Should().Be("issue1Topic");
+            workItem["Description"].Should().Be("descr");
+            workItem["IdField"].Should().Be("issue2");
+            workItem["ActivityCount"].Should().Be("1");
+        }
+
+        [TestMethod]
+        public void TfsSinkUpdateWorkItemShouldUpdateFieldsEvenIfWorkItemTypeIsNull()
+        {
+            var fieldMap = new Dictionary<string, object>
+                               {
+                                   { "Title", "{{Topic}}" },
+                                   { "Description", "{{Description}}" },
+                                   { "IdField", "{{Id}}" },
+                                   { "ActivityCount", "{{Activity}}" }
+                               };
+            var tfsSink = new TestableTfsSink(this.tfsServiceSimulator, new NetworkCredential(), this.parentWorkItemId, null, fieldMap);
             var issue = new Issue { Id = "issue2", Topic = "issue1Topic", Activity = 1, Description = "descr" };
             tfsSink.Configure();
 
@@ -126,7 +176,7 @@ namespace Supa.Tests
                                    { "Foo", "{{Topic1}}" },
                                    { "Description", "{{deScriptIon}}" }
                                };
-            var tfsSink = new TestableTfsSink(this.tfsServiceSimulator, new NetworkCredential(), this.parentWorkItemId, fieldMap);
+            var tfsSink = new TestableTfsSink(this.tfsServiceSimulator, new NetworkCredential(), this.parentWorkItemId, "Task", fieldMap);
             var issue = new Issue { Id = "issue2", Topic = "issue1Topic", Activity = 1 };
             tfsSink.Configure();
 
@@ -142,8 +192,8 @@ namespace Supa.Tests
 
     public class TestableTfsSink : TfsSink
     {
-        public TestableTfsSink(ITfsServiceProvider serviceProvider, NetworkCredential credential, int parentWorkItemId, Dictionary<string, object> fieldMap)
-            : base(serviceProvider, credential, parentWorkItemId, fieldMap)
+        public TestableTfsSink(ITfsServiceProvider serviceProvider, NetworkCredential credential, int parentWorkItemId, string workItemType, Dictionary<string, object> fieldMap)
+            : base(serviceProvider, credential, parentWorkItemId, workItemType, fieldMap)
         {
         }
     }

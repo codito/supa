@@ -56,6 +56,7 @@ namespace Supa
                         new Uri(appConfig.TfsSink.ServiceUri),
                         new NetworkCredential(appConfig.TfsSink.Username, appConfig.TfsSink.Password), 
                         appConfig.TfsSink.ParentWorkItem,
+                        appConfig.TfsSink.WorkItemType,
                         workItemTemplate);
                     tfsSink.Configure();
                     foreach (var issue in source.Issues)

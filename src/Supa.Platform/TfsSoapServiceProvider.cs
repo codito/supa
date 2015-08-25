@@ -34,6 +34,8 @@ namespace Supa.Platform
 
         private WorkItem parentWorkItem;
 
+        private string workItemType;
+
         /// <summary>
         /// Initializes a new instance of the <see cref="TfsSoapServiceProvider"/> class.
         /// </summary>
@@ -57,10 +59,16 @@ namespace Supa.Platform
                 throw new ArgumentNullException(nameof(configuration));
             }
 
+            if(string.IsNullOrEmpty(configuration.WorkItemType))
+            {
+                throw new ArgumentNullException(nameof(configuration.WorkItemType));
+            }
+
             this.logger.Debug("Configure of TfsSoapServiceProvider started...");
             var networkCredential = new NetworkCredential(configuration.Username, configuration.Password);
             var tfsClientCredentials = new TfsClientCredentials(new BasicAuthCredential(networkCredential)) { AllowInteractive = false };
             var tfsProjectCollection = new TfsTeamProjectCollection(this.serviceUri, tfsClientCredentials);
+            this.workItemType = configuration.WorkItemType;
             tfsProjectCollection.Authenticate();
             tfsProjectCollection.EnsureAuthenticated();
             this.logger.Debug("Authentication successful for {serviceUri}.", this.serviceUri.AbsoluteUri);
@@ -117,7 +125,7 @@ namespace Supa.Platform
             if (item == null)
             {
                 this.logger.Debug("Need a new tfs work item.");
-                item = this.parentWorkItem.Project.WorkItemTypes["Task"].NewWorkItem();
+                item = this.parentWorkItem.Project.WorkItemTypes[this.workItemType].NewWorkItem();
                 hasChange = true;
             }
 
