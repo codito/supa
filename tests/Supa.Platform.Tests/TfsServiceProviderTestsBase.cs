@@ -47,6 +47,7 @@ namespace Supa.Platform.Tests
         {
             var invalidCredentialConfig = new TfsServiceProviderConfiguration("invalidUsername", "invalidPassword");
             invalidCredentialConfig.ParentWorkItemId = this.tfsServiceProviderDefaultConfig.ParentWorkItemId;
+            invalidCredentialConfig.WorkItemType = "Task";
 
             Func<Task> action = async () => await this.tfsServiceProvider.ConfigureAsync(invalidCredentialConfig);
 
