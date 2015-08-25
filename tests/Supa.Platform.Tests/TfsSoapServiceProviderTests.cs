@@ -96,7 +96,8 @@ namespace Supa.Platform.Tests
         {
             return new TfsServiceProviderConfiguration(tfsServiceProviderTestUser, tfsServiceProviderTestPassword)
                        {
-                           ParentWorkItemId = parentWorkItemId
+                           ParentWorkItemId = parentWorkItemId,
+                           WorkItemType = "Task"
                        };
         }
 
