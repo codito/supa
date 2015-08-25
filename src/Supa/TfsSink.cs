@@ -42,8 +42,8 @@ namespace Supa
         /// Parent work item id for all tasks.
         /// </param>
         /// <param name="fieldMap">Map of work item fields to mail properties.</param>
-        public TfsSink(Uri serviceUri, NetworkCredential credential, int parentWorkItem, IDictionary<string, object> fieldMap)
-            : this(new TfsSoapServiceProvider(serviceUri), credential, parentWorkItem, fieldMap)
+        public TfsSink(Uri serviceUri, NetworkCredential credential, int parentWorkItem, string workItemType, IDictionary<string, object> fieldMap)
+            : this(new TfsSoapServiceProvider(serviceUri), credential, parentWorkItem, workItemType, fieldMap)
         {
         }
 
@@ -60,7 +60,7 @@ namespace Supa
         /// Parent work item id for all tasks.
         /// </param>
         /// <param name="fieldMap">Map of work item fields to mail properties.</param>
-        protected TfsSink(ITfsServiceProvider tfsServiceProvider, NetworkCredential credential, int parentWorkItem, IDictionary<string, object> fieldMap)
+        protected TfsSink(ITfsServiceProvider tfsServiceProvider, NetworkCredential credential, int parentWorkItem, string workItemType, IDictionary<string, object> fieldMap)
         {
             if (credential == null)
             {
@@ -78,7 +78,8 @@ namespace Supa
             this.fieldMap = fieldMap;
             this.tfsServiceProviderConfiguration = new TfsServiceProviderConfiguration(credential.UserName, credential.Password)
             {
-                ParentWorkItemId = parentWorkItem
+                ParentWorkItemId = parentWorkItem,
+                WorkItemType = string.IsNullOrEmpty(workItemType) ? "Task" : workItemType
             };
         }
 
