@@ -87,6 +87,7 @@ namespace Supa.Platform
         /// <inheritdoc/>
         public TfsWorkItem GetWorkItemForIssue(string issueId, int issueActivityCount)
         {
+            var isNew = false;
             this.logger.Debug("Get tfs work item for {issueId}, {issueActivityCount}.", issueId, issueActivityCount);
             if (string.IsNullOrEmpty(issueId))
             {
@@ -127,11 +128,12 @@ namespace Supa.Platform
                 this.logger.Debug("Need a new tfs work item.");
                 item = this.parentWorkItem.Project.WorkItemTypes[this.workItemType].NewWorkItem();
                 hasChange = true;
+                isNew = true;
             }
 
             var issueSignature = $"{issueId}:{issueActivityCount}";
             this.logger.Verbose("We've a tfs work item for email thread: {title}.", item.Title);
-            return new TfsWorkItem(item) { HasChange = hasChange, IssueSignature = issueSignature };
+            return new TfsWorkItem(item) { HasChange = hasChange, IssueSignature = issueSignature, IsNew = isNew };
         }
 
         /// <inheritdoc/>

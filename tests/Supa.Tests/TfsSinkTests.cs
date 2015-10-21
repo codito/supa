@@ -188,6 +188,34 @@ namespace Supa.Tests
             workItem["Foo"].Should().Be("{{Topic1}}");
             workItem["Description"].Should().Be("{{deScriptIon}}");
         }
+
+        [TestMethod]
+        public void TfsSinkUpdateWorkItemShouldNotUpdateAllFields()
+        {
+            var fieldMap = new Dictionary<string, object>
+                               {
+                                   { "Title", "Dummy Title" }, // Title is a mandatory field for simulator
+                                   { "Foo", "{{Topic1}}" },
+                                   { "Description", "{{deScriptIon}}" },
+                                   { "AreaPath", "Something"}
+                               };
+            var tfsSink = new TestableTfsSink(this.tfsServiceSimulator, new NetworkCredential(), this.parentWorkItemId, "Task", fieldMap);
+            var issue = new Issue { Id = "issue2", Topic = "issue1Topic", Activity = 1 };
+            tfsSink.Configure();
+
+            tfsSink.UpdateWorkItem(issue).Should().BeTrue();
+
+            var workItem = this.tfsServiceSimulator.GetWorkItemForIssue("issue2", 1).Item as TfsServiceProviderSimulator.InMemoryWorkItem;
+            Assert.IsNotNull(workItem);
+            workItem["Title"].Should().Be("Dummy Title");
+            workItem["Foo"].Should().Be("{{Topic1}}");
+            workItem["Description"].Should().Be("{{deScriptIon}}");
+
+            workItem["AreaPath"] = "nothing"; // someone updates in the background
+            var issue2 = new Issue { Id = "issue2", Topic = "issue1Topic", Activity = 2 };
+            tfsSink.UpdateWorkItem(issue2).Should().BeTrue();
+            workItem["AreaPath"].Should().Be("nothing"); // supa does not revert to "something"
+        }
     }
 
     public class TestableTfsSink : TfsSink

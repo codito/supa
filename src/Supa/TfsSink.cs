@@ -130,6 +130,12 @@ namespace Supa
                     case "{{Activity}}":
                         issueField = issue.Activity.ToString(CultureInfo.InvariantCulture);
                         break;
+                    default:
+                        if (!tfsWorkItem.IsNew)
+                        {
+                            continue;
+                        }
+                        break;
                 }
 
                 tfsWorkItem.UpdateField(keyval.Key, issueField);
