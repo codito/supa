@@ -71,5 +71,10 @@ namespace Supa.Platform
         /// </summary>
         /// <remarks>Used for testability.</remarks>
         public Type WorkItemBaseType { get; }
+
+        /// <summary>
+        /// is this a new workitem or existing
+        /// </summary>
+        public bool IsNew { get; set; }
     }
 }

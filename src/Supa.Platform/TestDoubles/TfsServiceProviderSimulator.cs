@@ -71,6 +71,7 @@ namespace Supa.Platform.TestDoubles
         /// <inheritdoc/>
         public TfsWorkItem GetWorkItemForIssue(string issueId, int issueActivityCount)
         {
+            bool isNew = false;
             if (string.IsNullOrEmpty(issueId))
             {
                 throw new ArgumentNullException(nameof(issueId));
@@ -108,10 +109,13 @@ namespace Supa.Platform.TestDoubles
             {
                 workItem = new InMemoryWorkItem();
                 hasChange = true;
+                isNew = true;
             }
 
             var issueSignature = $"{issueId}:{issueActivityCount}";
-            return new InMemoryTfsWorkItem(workItem) { HasChange = hasChange, IssueSignature = issueSignature };
+            var imtw= new InMemoryTfsWorkItem(workItem) { HasChange = hasChange, IssueSignature = issueSignature };
+            imtw.IsNew = isNew;
+            return imtw;
         }
 
         /// <inheritdoc/>
