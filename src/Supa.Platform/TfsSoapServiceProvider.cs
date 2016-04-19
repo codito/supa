@@ -15,7 +15,6 @@ namespace Supa.Platform
     using System.Net;
     using System.Threading.Tasks;
 
-    using Microsoft.TeamFoundation.Build.WebApi;
     using Microsoft.TeamFoundation.Client;
     using Microsoft.TeamFoundation.WorkItemTracking.Client;
 
@@ -66,10 +65,22 @@ namespace Supa.Platform
 
             this.logger.Debug("Configure of TfsSoapServiceProvider started...");
             var networkCredential = new NetworkCredential(configuration.Username, configuration.Password);
-            var tfsClientCredentials = new TfsClientCredentials(new BasicAuthCredential(networkCredential)) { AllowInteractive = false };
+            TfsClientCredentials tfsClientCredentials = new TfsClientCredentials(new BasicAuthCredential(networkCredential)) { AllowInteractive = false };
+
             var tfsProjectCollection = new TfsTeamProjectCollection(this.serviceUri, tfsClientCredentials);
             this.workItemType = configuration.WorkItemType;
-            tfsProjectCollection.Authenticate();
+
+            try
+            {
+                tfsProjectCollection.Authenticate();
+            }
+            catch
+            {
+                tfsClientCredentials = new TfsClientCredentials(); // fall back to login page
+                tfsProjectCollection = new TfsTeamProjectCollection(this.serviceUri, tfsClientCredentials);
+                tfsProjectCollection.Authenticate();
+            }
+
             tfsProjectCollection.EnsureAuthenticated();
             this.logger.Debug("Authentication successful for {serviceUri}.", this.serviceUri.AbsoluteUri);
 
