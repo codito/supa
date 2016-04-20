@@ -43,6 +43,7 @@ namespace Supa.Platform.Tests
         }
 
         [TestMethod]
+        [Ignore] // toso: Remove this when we move to rest api
         public void TfsServiceProviderConfigureThrowsIfAuthenticationFails()
         {
             var invalidCredentialConfig = new TfsServiceProviderConfiguration("invalidUsername", "invalidPassword");
