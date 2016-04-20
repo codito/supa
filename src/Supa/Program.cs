@@ -29,19 +29,28 @@ namespace Supa
         /// </param>
         public static void Main(string[] args)
         {
+            // TODO Read the settings ini file
+            var app = new SupaApp();
+            app.ReadConfiguration("settings.json");
+            dynamic appConfig = app.Configuration;
+
+            // Setup logging
+            Log.Logger =
+                new LoggerConfiguration().MinimumLevel.Verbose().WriteTo.ColoredConsole().CreateLogger();
+
+            IDictionary<string, object> workItemTemplate = appConfig.TfsSink.WorkItemTemplate;
+            var tfsSink = new TfsSink(
+                new Uri(appConfig.TfsSink.ServiceUri),
+                new NetworkCredential(appConfig.TfsSink.Username, appConfig.TfsSink.Password),
+                appConfig.TfsSink.ParentWorkItem,
+                appConfig.TfsSink.WorkItemType,
+                workItemTemplate);
+            tfsSink.Configure();
+
             while (true)
             {
                 try
                 {
-                    // Setup logging
-                    Log.Logger =
-                        new LoggerConfiguration().MinimumLevel.Verbose().WriteTo.ColoredConsole().CreateLogger();
-
-                    // TODO Read the settings ini file
-                    var app = new SupaApp();
-                    app.ReadConfiguration("settings.json");
-                    dynamic appConfig = app.Configuration;
-
                     var credential = new NetworkCredential(
                         appConfig.ExchangeSource.Username,
                         appConfig.ExchangeSource.Password,
@@ -51,14 +60,6 @@ namespace Supa
                         credential,
                         appConfig.ExchangeSource.FolderName);
 
-                    IDictionary<string, object> workItemTemplate = appConfig.TfsSink.WorkItemTemplate;
-                    var tfsSink = new TfsSink(
-                        new Uri(appConfig.TfsSink.ServiceUri),
-                        new NetworkCredential(appConfig.TfsSink.Username, appConfig.TfsSink.Password), 
-                        appConfig.TfsSink.ParentWorkItem,
-                        appConfig.TfsSink.WorkItemType,
-                        workItemTemplate);
-                    tfsSink.Configure();
                     foreach (var issue in source.Issues)
                     {
                         tfsSink.UpdateWorkItem(issue);
