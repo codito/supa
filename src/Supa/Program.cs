@@ -34,6 +34,10 @@ namespace Supa
             app.ReadConfiguration("settings.json");
             dynamic appConfig = app.Configuration;
 
+            // Setup logging
+            Log.Logger =
+                new LoggerConfiguration().MinimumLevel.Verbose().WriteTo.ColoredConsole().CreateLogger();
+
             IDictionary<string, object> workItemTemplate = appConfig.TfsSink.WorkItemTemplate;
             var tfsSink = new TfsSink(
                 new Uri(appConfig.TfsSink.ServiceUri),
@@ -47,10 +51,6 @@ namespace Supa
             {
                 try
                 {
-                    // Setup logging
-                    Log.Logger =
-                        new LoggerConfiguration().MinimumLevel.Verbose().WriteTo.ColoredConsole().CreateLogger();                    
-
                     var credential = new NetworkCredential(
                         appConfig.ExchangeSource.Username,
                         appConfig.ExchangeSource.Password,
