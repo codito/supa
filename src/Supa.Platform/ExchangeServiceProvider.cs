@@ -100,7 +100,7 @@ namespace Supa.Platform
                 var thread = new MailThread { Id = conversation.Id.ToString(), Topic = conversation.Topic, };
                 this.logger.Debug("Created {MailThread}", thread);
 
-                this.logger.Verbose("Finding emails contained in the thread. " +conversation.Topic);
+                this.logger.Verbose(string.Format("Finding emails contained in the thread. Topic: {0} ", conversation.Topic));
                 this.watch.Restart();
                 var items = GetConversationItemsSingleConversation(exchangeService, folder.Id, conversation);
                 this.watch.Stop();
@@ -194,20 +194,12 @@ namespace Supa.Platform
 
         private static IEnumerable<Item> GetConversationItemsSingleConversation(ExchangeService service, FolderId folderId, Conversation conversation)
         {
-            //var conversationId = conversation.Id;
-            //var conversationIdProperty = new ExtendedPropertyDefinition(0x3013, MapiPropertyType.Binary);
-            //var cidBinary = Convert.FromBase64String(conversationId.UniqueId);
-            //var cidGuid = new byte[16];
-            //Array.Copy(cidBinary, cidBinary.Length - 16, cidGuid, 0, 16);
 
-           // var conversationIdValue = Convert.ToBase64String(cidGuid);
             var itempropertyset = new PropertySet(BasePropertySet.FirstClassProperties)
                                       {
                                           RequestedBodyType = BodyType.Text
                                       };
             var itemview = new ItemView(100) { PropertySet = itempropertyset };
-
-            // var conversationFilter = new SearchFilter.IsEqualTo(conversationIdProperty, conversationIdValue);
             var conversationFilter = new SearchFilter.IsEqualTo(EmailMessageSchema.ConversationTopic, conversation.Topic);
             var items = service.FindItems(folderId, conversationFilter, itemview);
             return items;
