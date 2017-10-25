@@ -16,6 +16,7 @@ namespace Supa.Platform
     using Microsoft.Exchange.WebServices.Data;
 
     using Serilog;
+    using System.Collections.ObjectModel;
 
     /// <inheritdoc/>
     public class ExchangeServiceProvider : IExchangeServiceProvider
@@ -99,9 +100,9 @@ namespace Supa.Platform
                 var thread = new MailThread { Id = conversation.Id.ToString(), Topic = conversation.Topic, };
                 this.logger.Debug("Created {MailThread}", thread);
 
-                this.logger.Verbose("Finding emails contained in the thread.");
+                this.logger.Verbose(string.Format("Finding emails contained in the thread. Topic: {0} ", conversation.Topic));
                 this.watch.Restart();
-                var items = GetConversationItemsSingleConversation(exchangeService, folder.Id, conversation.Id);
+                var items = GetConversationItemsSingleConversation(exchangeService, folder.Id, conversation);
                 this.watch.Stop();
                 this.logger.Debug("Time taken to find emails in {thread} = {ElapsedTime}", thread, this.watch.Elapsed);
 
@@ -191,32 +192,16 @@ namespace Supa.Platform
             folder.Delete(DeleteMode.HardDelete);
         }
 
-        private static IEnumerable<Item> GetConversationItemsSingleConversation(ExchangeService service, FolderId folderId, ConversationId conversationId)
+        private static IEnumerable<Item> GetConversationItemsSingleConversation(ExchangeService service, FolderId folderId, Conversation conversation)
         {
-            var conversationIdProperty = new ExtendedPropertyDefinition(0x3013, MapiPropertyType.Binary);
-            var cidBinary = Convert.FromBase64String(conversationId.UniqueId);
-            var cidGuid = new byte[16];
-            Array.Copy(cidBinary, 43, cidGuid, 0, 16);
 
-            var conversationIdValue = Convert.ToBase64String(cidGuid);
             var itempropertyset = new PropertySet(BasePropertySet.FirstClassProperties)
                                       {
                                           RequestedBodyType = BodyType.Text
                                       };
             var itemview = new ItemView(100) { PropertySet = itempropertyset };
-
-            // {
-                           // PropertySet = new PropertySet(
-                           // BasePropertySet.IdOnly,
-                           // ItemSchema.DateTimeReceived,
-                           // ItemSchema.LastModifiedName,
-                           // ItemSchema.DisplayTo,
-                           // ItemSchema.DisplayCc,
-                           // ItemSchema.Subject)
-                           // };
-            var conversationFilter = new SearchFilter.IsEqualTo(conversationIdProperty, conversationIdValue);
+            var conversationFilter = new SearchFilter.IsEqualTo(EmailMessageSchema.ConversationTopic, conversation.Topic);
             var items = service.FindItems(folderId, conversationFilter, itemview);
-
             return items;
         }
     }
